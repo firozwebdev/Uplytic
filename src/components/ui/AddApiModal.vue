@@ -134,7 +134,7 @@ const handleSubmit = async () => {
   isSubmitting.value = true;
 
   try {
-    const newApi = apiStore.addApi({
+    const newApi = await apiStore.addApi({
       name: form.value.name,
       url: form.value.url,
       cost_per_hour: form.value.cost_per_hour,

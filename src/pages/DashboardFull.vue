@@ -528,7 +528,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import DashboardLayout from "../layouts/DashboardLayout.vue";
 import { useApiStore } from "../stores/api.js";
 import LatencyChart from "../components/charts/LatencyChart.vue";
@@ -549,6 +549,10 @@ const selectedApi = ref(null);
 const totalChecks = computed(() => {
   return apiStore.logs.length;
 });
+
+onMounted(() => {
+  apiStore.loadApis()
+})
 
 const getApiStats = (apiId) => {
   return (
