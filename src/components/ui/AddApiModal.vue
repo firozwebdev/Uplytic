@@ -117,11 +117,12 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { useApiStore } from "../../stores/api";
+import { ref } stores/api";
+import { useToast } from 'vue-toastification';
 
 const apiStore = useApiStore();
 const isSubmitting = ref(false);
+const toast = useToast();
 
 const form = ref({
   name: "",
@@ -150,9 +151,11 @@ const handleSubmit = async () => {
     };
 
     // Emit success
+    toast.success('API added successfully!');
     emit("api-added", newApi);
     emit("close");
   } catch (error) {
+    toast.error(error.message || "Error adding API");
     console.error("Error adding API:", error);
   } finally {
     isSubmitting.value = false;
