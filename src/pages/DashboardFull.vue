@@ -152,19 +152,20 @@
 
       <div v-else class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <div
-          v-for="api in apiStore.apis"
+          v-for="(api, index) in apiStore.apis"
           :key="api.id"
-          class="group relative rounded-xl p-6 shadow-sm border transition-all duration-200 cursor-pointer hover:shadow-lg"
+          class="group relative rounded-xl p-6 shadow-sm border transition-all duration-500 cursor-pointer hover:shadow-2xl hover:scale-105"
           :class="[
             isDark
-              ? 'bg-gray-800 border-gray-700 hover:border-gray-600'
-              : 'bg-white border-gray-200 hover:border-gray-300',
+              ? 'bg-gradient-to-br from-gray-800 via-gray-750 to-gray-800 border-gray-700 hover:border-gray-600 hover:bg-gradient-to-br hover:from-gray-750 hover:via-gray-700 hover:to-gray-750'
+              : 'bg-gradient-to-br from-white via-gray-50 to-white border-gray-200 hover:border-gray-300 hover:bg-gradient-to-br hover:from-gray-50 hover:via-white hover:to-gray-50',
             selectedApiId === api.id
               ? isDark
-                ? 'ring-2 ring-blue-500 border-blue-500/50'
-                : 'ring-2 ring-blue-500'
+                ? 'ring-2 ring-blue-500 border-blue-500/50 shadow-blue-500/25'
+                : 'ring-2 ring-blue-500 shadow-blue-500/25'
               : '',
           ]"
+          :style="{ animationDelay: `${index * 100}ms` }"
           @click="selectApi(api.id)"
         >
           <!-- Status Indicator -->
@@ -354,170 +355,85 @@
 
         <!-- Content -->
         <div class="p-6">
-          <!-- KPI Cards -->
+          <!-- Animated KPI Cards -->
           <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <AnimatedKpiCard
+              :value="apiStore.apis.length"
+              label="APIs Monitored"
+              :icon="ApiIcon"
+              variant="blue"
+              :is-dark="isDark"
+              trend="up"
+              trend-value="+2"
+            />
+
+            <AnimatedKpiCard
+              :value="245"
+              label="Avg Response Time"
+              :icon="SpeedIcon"
+              variant="green"
+              :is-dark="isDark"
+              trend="down"
+              trend-value="-12ms"
+            />
+
+            <AnimatedKpiCard
+              :value="99.8"
+              label="Uptime"
+              :icon="UptimeIcon"
+              variant="purple"
+              :is-dark="isDark"
+              trend="up"
+              trend-value="+0.2%"
+            />
+
+            <AnimatedKpiCard
+              :value="3"
+              label="Errors (24h)"
+              :icon="ErrorIcon"
+              variant="orange"
+              :is-dark="isDark"
+              trend="down"
+              trend-value="-1"
+            />
+          </div>
+
+          <!-- Charts Section -->
+          <div class="grid gap-6 md:grid-cols-2 mb-8">
+            <!-- Latency Chart -->
             <div
-              class="rounded-lg p-4 transition-colors duration-300"
+              class="rounded-lg border p-6 transition-colors duration-300"
               :class="
                 isDark
-                  ? 'bg-gradient-to-br from-blue-900/50 to-blue-800/50 border border-blue-700/30'
-                  : 'bg-gradient-to-br from-blue-50 to-blue-100'
+                  ? 'bg-gray-800 border-gray-700'
+                  : 'bg-white border-gray-200'
               "
             >
-              <div class="flex items-center">
-                <div class="p-2 bg-blue-500 rounded-lg mr-3">
-                  <svg
-                    class="h-5 w-5 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M13 10V3L4 14h7v7l9-11h-7z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <div
-                    class="text-2xl font-bold transition-colors duration-300"
-                    :class="isDark ? 'text-blue-300' : 'text-blue-900'"
-                  >
-                    99.8%
-                  </div>
-                  <div
-                    class="text-sm transition-colors duration-300"
-                    :class="isDark ? 'text-blue-400' : 'text-blue-700'"
-                  >
-                    Uptime
-                  </div>
-                </div>
-              </div>
+              <h4
+                class="text-lg font-semibold mb-4 transition-colors duration-300"
+                :class="isDark ? 'text-white' : 'text-gray-900'"
+              >
+                Response Time Trends
+              </h4>
+              <LatencyChart :is-dark="isDark" />
             </div>
 
+            <!-- Status Distribution Chart -->
             <div
-              class="rounded-lg p-4 transition-colors duration-300"
+              class="rounded-lg border p-6 transition-colors duration-300"
               :class="
                 isDark
-                  ? 'bg-gradient-to-br from-green-900/50 to-green-800/50 border border-green-700/30'
-                  : 'bg-gradient-to-br from-green-50 to-green-100'
+                  ? 'bg-gray-800 border-gray-700'
+                  : 'bg-white border-gray-200'
               "
             >
-              <div class="flex items-center">
-                <div class="p-2 bg-green-500 rounded-lg mr-3">
-                  <svg
-                    class="h-5 w-5 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <div
-                    class="text-2xl font-bold transition-colors duration-300"
-                    :class="isDark ? 'text-green-300' : 'text-green-900'"
-                  >
-                    245ms
-                  </div>
-                  <div
-                    class="text-sm transition-colors duration-300"
-                    :class="isDark ? 'text-green-400' : 'text-green-700'"
-                  >
-                    Avg Response Time
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div
-              class="rounded-lg p-4 transition-colors duration-300"
-              :class="
-                isDark
-                  ? 'bg-gradient-to-br from-purple-900/50 to-purple-800/50 border border-purple-700/30'
-                  : 'bg-gradient-to-br from-purple-50 to-purple-100'
-              "
-            >
-              <div class="flex items-center">
-                <div class="p-2 bg-purple-500 rounded-lg mr-3">
-                  <svg
-                    class="h-5 w-5 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <div
-                    class="text-2xl font-bold transition-colors duration-300"
-                    :class="isDark ? 'text-purple-300' : 'text-purple-900'"
-                  >
-                    1,247
-                  </div>
-                  <div
-                    class="text-sm transition-colors duration-300"
-                    :class="isDark ? 'text-purple-400' : 'text-purple-700'"
-                  >
-                    Total Checks
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div
-              class="rounded-lg p-4 transition-colors duration-300"
-              :class="
-                isDark
-                  ? 'bg-gradient-to-br from-orange-900/50 to-orange-800/50 border border-orange-700/30'
-                  : 'bg-gradient-to-br from-orange-50 to-orange-100'
-              "
-            >
-              <div class="flex items-center">
-                <div class="p-2 bg-orange-500 rounded-lg mr-3">
-                  <svg
-                    class="h-5 w-5 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <div
-                    class="text-2xl font-bold transition-colors duration-300"
-                    :class="isDark ? 'text-orange-300' : 'text-orange-900'"
-                  >
-                    3
-                  </div>
-                  <div
-                    class="text-sm transition-colors duration-300"
-                    :class="isDark ? 'text-orange-400' : 'text-orange-700'"
-                  >
-                    Errors (24h)
-                  </div>
-                </div>
-              </div>
+              <h4
+                class="text-lg font-semibold mb-4 transition-colors duration-300"
+                :class="isDark ? 'text-white' : 'text-gray-900'"
+              >
+                Status Distribution
+              </h4>
+              <StatusChart :is-dark="isDark" />
             </div>
           </div>
 
@@ -615,6 +531,15 @@
 import { ref, computed } from "vue";
 import DashboardLayout from "../layouts/DashboardLayout.vue";
 import { useApiStore } from "../stores/api.js";
+import LatencyChart from "../components/charts/LatencyChart.vue";
+import StatusChart from "../components/charts/StatusChart.vue";
+import AnimatedKpiCard from "../components/dashboard/AnimatedKpiCard.vue";
+import {
+  ApiIcon,
+  SpeedIcon,
+  UptimeIcon,
+  ErrorIcon,
+} from "../components/icons/ApiIcons.vue";
 
 const apiStore = useApiStore();
 const showAddApiModal = ref(false);
@@ -670,3 +595,118 @@ const deleteApi = (apiId) => {
   }
 };
 </script>
+
+<style scoped>
+/* Staggered animation for API cards */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.grid > div {
+  animation: fadeInUp 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+/* Hover effects for API cards */
+.group:hover {
+  transform: translateY(-4px) scale(1.02);
+}
+
+.group:hover .absolute {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Smooth transitions for all elements */
+* {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Gradient animations */
+.bg-gradient-to-br {
+  background-size: 200% 200%;
+}
+
+.group:hover .bg-gradient-to-br {
+  animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Chart container animations */
+.chart-container {
+  animation: slideInUp 0.8s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* KPI card hover effects */
+.kpi-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.kpi-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Status indicator pulse */
+.status-indicator {
+  animation: statusPulse 2s infinite;
+}
+
+@keyframes statusPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+  }
+}
+
+/* Loading animation for charts */
+.chart-loading {
+  animation: chartLoading 1.5s ease-in-out infinite;
+}
+
+@keyframes chartLoading {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+</style>
