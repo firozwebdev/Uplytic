@@ -117,7 +117,8 @@
 </template>
 
 <script setup>
-import { ref } stores/api";
+import { ref } from 'vue';
+import { useApiStore } from '../../stores/api';
 import { useToast } from 'vue-toastification';
 
 const apiStore = useApiStore();
