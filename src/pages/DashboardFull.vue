@@ -525,6 +525,11 @@
       </div>
     </div>
   </DashboardLayout>
+  <AddApiModal
+    v-if="showAddApiModal"
+    @close="showAddApiModal = false"
+    @api-added="apiStore.loadApis"
+  />
 </template>
 
 <script setup>
@@ -540,6 +545,7 @@ import {
   UptimeIcon,
   ErrorIcon,
 } from "../components/icons/ApiIcons.vue";
+import AddApiModal from "../components/ui/AddApiModal.vue";
 
 const apiStore = useApiStore();
 const showAddApiModal = ref(false);
@@ -551,8 +557,8 @@ const totalChecks = computed(() => {
 });
 
 onMounted(() => {
-  apiStore.loadApis()
-})
+  apiStore.loadApis();
+});
 
 const getApiStats = (apiId) => {
   return (
@@ -628,7 +634,8 @@ const deleteApi = (apiId) => {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -652,7 +659,8 @@ const deleteApi = (apiId) => {
 }
 
 @keyframes gradientShift {
-  0%, 100% {
+  0%,
+  100% {
     background-position: 0% 50%;
   }
   50% {
@@ -692,7 +700,8 @@ const deleteApi = (apiId) => {
 }
 
 @keyframes statusPulse {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
   }
   50% {
@@ -706,7 +715,8 @@ const deleteApi = (apiId) => {
 }
 
 @keyframes chartLoading {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.3;
   }
   50% {
