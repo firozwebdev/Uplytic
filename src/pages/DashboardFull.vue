@@ -368,7 +368,7 @@
             />
 
             <AnimatedKpiCard
-              :value="245"
+              :value="selectedApiStats.value && typeof selectedApiStats.value.avgLatency === 'number' ? selectedApiStats.value.avgLatency : 0"
               label="Avg Response Time"
               :icon="SpeedIcon"
               variant="green"
@@ -378,7 +378,7 @@
             />
 
             <AnimatedKpiCard
-              :value="99.8"
+              :value="selectedApiStats.value && typeof selectedApiStats.value.uptime === 'number' ? selectedApiStats.value.uptime : 0"
               label="Uptime"
               :icon="UptimeIcon"
               variant="purple"
@@ -388,7 +388,7 @@
             />
 
             <AnimatedKpiCard
-              :value="3"
+              :value="selectedApiStats.value && typeof selectedApiStats.value.errors === 'number' ? selectedApiStats.value.errors : 0"
               label="Errors (24h)"
               :icon="ErrorIcon"
               variant="orange"
@@ -415,7 +415,7 @@
               >
                 Response Time Trends
               </h4>
-              <LatencyChart :is-dark="isDark" />
+              <LatencyChart :logs="logsForSelectedApi" :is-dark="isDark" />
             </div>
 
             <!-- Status Distribution Chart -->
@@ -433,7 +433,7 @@
               >
                 Status Distribution
               </h4>
-              <StatusChart :is-dark="isDark" />
+              <StatusChart :logs="logsForSelectedApi" :is-dark="isDark" />
             </div>
           </div>
 
@@ -554,6 +554,7 @@ import {
   ErrorIcon,
 } from "../components/icons/ApiIcons.vue";
 import AddApiModal from "../components/ui/AddApiModal.vue";
+import { startPollingApis } from '../services/pollingService';
 
 const apiStore = useApiStore();
 const showAddApiModal = ref(false);
@@ -565,8 +566,30 @@ const totalChecks = computed(() => {
   return apiStore.logs.length;
 });
 
+const logsForSelectedApi = computed(() => {
+  if (!selectedApiId.value) return [];
+  return apiStore.logs.filter(log => log.api_id === selectedApiId.value);
+});
+
+const selectedApiStats = computed(() => {
+  return (
+    apiStore.apiStats.find((stats) => stats.id === selectedApiId.value) || {
+      uptime: 0,
+      avgLatency: 0,
+      totalChecks: 0,
+      errors: 0,
+    }
+  );
+});
+
 onMounted(() => {
-  apiStore.loadApis();
+  apiStore.loadApis().then(() => {
+    startPollingApis();
+    // Refresh logs every 60 seconds to keep UI in sync
+    setInterval(() => {
+      apiStore.loadLogs();
+    }, 60000);
+  });
 });
 
 const getApiStats = (apiId) => {

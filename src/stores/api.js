@@ -71,6 +71,7 @@ export const useApiStore = defineStore("api", () => {
     isLoading.value = true;
     error.value = null;
     try {
+      // If apiId is provided, fetch logs for that API; otherwise, fetch all logs
       logs.value = await fetchLogs(apiId);
     } catch (err) {
       error.value = err.message || "Failed to load logs";
