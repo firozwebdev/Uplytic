@@ -33,10 +33,10 @@
               id="name"
               v-model="form.name"
               type="text"
-              required
               class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="e.g., User Service API"
             />
+            <p v-if="errors.name" class="text-xs text-red-500 mt-1">{{ errors.name }}</p>
           </div>
 
           <!-- API URL -->
@@ -51,10 +51,10 @@
               id="url"
               v-model="form.url"
               type="url"
-              required
               class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="https://api.example.com/health"
             />
+            <p v-if="errors.url" class="text-xs text-red-500 mt-1">{{ errors.url }}</p>
           </div>
 
           <!-- Cost per Hour -->
@@ -77,6 +77,7 @@
             <p class="text-xs text-gray-500 mt-1">
               Used for downtime cost calculations
             </p>
+            <p v-if="errors.cost_per_hour" class="text-xs text-red-500 mt-1">{{ errors.cost_per_hour }}</p>
           </div>
 
           <!-- Public Access -->
@@ -132,7 +133,56 @@ const form = ref({
   is_public: false,
 });
 
+const errors = ref({
+  name: '',
+  url: '',
+  cost_per_hour: '',
+});
+
+function validateUrl(url) {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function validateForm() {
+  let valid = true;
+  errors.value = { name: '', url: '', cost_per_hour: '' };
+
+  if (!form.value.name.trim()) {
+    errors.value.name = 'API Name is required.';
+    valid = false;
+  } else if (apiStore.apis.some(api => api.name.trim().toLowerCase() === form.value.name.trim().toLowerCase())) {
+    errors.value.name = 'An API with this name already exists.';
+    valid = false;
+  }
+  if (!form.value.url.trim()) {
+    errors.value.url = 'API URL is required.';
+    valid = false;
+  } else if (!validateUrl(form.value.url)) {
+    errors.value.url = 'Please enter a valid URL (e.g., https://api.example.com/health).';
+    valid = false;
+  } else if (apiStore.apis.some(api => api.url.trim().toLowerCase() === form.value.url.trim().toLowerCase())) {
+    errors.value.url = 'An API with this URL already exists.';
+    valid = false;
+  }
+  if (form.value.cost_per_hour === '' || form.value.cost_per_hour === null || isNaN(form.value.cost_per_hour)) {
+    errors.value.cost_per_hour = 'Cost per Hour is required and must be a number.';
+    valid = false;
+  } else if (form.value.cost_per_hour < 0) {
+    errors.value.cost_per_hour = 'Cost per Hour cannot be negative.';
+    valid = false;
+  }
+  return valid;
+}
+
 const handleSubmit = async () => {
+  if (!validateForm()) {
+    return;
+  }
   isSubmitting.value = true;
 
   try {
