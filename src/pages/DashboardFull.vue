@@ -326,12 +326,19 @@
                   Status
                 </div>
                 <div class="flex items-center mt-1">
-                  <div class="h-2 w-2 rounded-full mr-2 bg-green-500"></div>
+                  <div
+                    class="h-2 w-2 rounded-full mr-2"
+                    :class="getStatusColor(selectedApi)"
+                  ></div>
                   <span
                     class="text-sm font-medium transition-colors duration-300"
                     :class="isDark ? 'text-green-400' : 'text-green-700'"
                   >
-                    Healthy
+                    {{
+                      selectedApiStats.value && typeof selectedApiStats.value.status !== 'undefined'
+                        ? (selectedApiStats.value.status < 400 ? 'Healthy' : (selectedApiStats.value.status ? 'Error' : 'Unknown'))
+                        : 'Unknown'
+                    }}
                   </span>
                 </div>
               </div>
@@ -346,7 +353,11 @@
                   class="text-sm font-medium transition-colors duration-300"
                   :class="isDark ? 'text-white' : 'text-gray-900'"
                 >
-                  2 minutes ago
+                  {{
+                    selectedApiStats.value && typeof selectedApiStats.value.lastCheck !== 'undefined'
+                      ? formatLastCheck(selectedApiStats.value.lastCheck)
+                      : 'Never'
+                  }}
                 </div>
               </div>
             </div>
@@ -453,68 +464,30 @@
               Recent Activity
             </h4>
             <div class="space-y-3">
+              <div v-if="logsForSelectedApi.length === 0" class="text-gray-400 text-sm">No recent activity for this API.</div>
               <div
+                v-for="log in logsForSelectedApi.slice(0, 10)"
+                :key="log.id"
                 class="flex items-center justify-between py-3 px-4 rounded-lg transition-colors duration-300"
                 :class="isDark ? 'bg-gray-900' : 'bg-gray-50'"
               >
                 <div class="flex items-center">
-                  <div class="h-2 w-2 rounded-full bg-green-500 mr-3"></div>
+                  <div
+                    class="h-2 w-2 rounded-full mr-3"
+                    :class="log.status_code < 400 ? 'bg-green-500' : (log.status_code < 500 ? 'bg-yellow-500' : 'bg-red-500')"
+                  ></div>
                   <div>
                     <div
                       class="text-sm font-medium transition-colors duration-300"
                       :class="isDark ? 'text-white' : 'text-gray-900'"
                     >
-                      200 - 245ms
+                      {{ log.status_code }} - {{ log.latency_ms }}ms
                     </div>
                     <div
                       class="text-xs transition-colors duration-300"
                       :class="isDark ? 'text-gray-400' : 'text-gray-500'"
                     >
-                      2 minutes ago
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="flex items-center justify-between py-3 px-4 rounded-lg transition-colors duration-300"
-                :class="isDark ? 'bg-gray-900' : 'bg-gray-50'"
-              >
-                <div class="flex items-center">
-                  <div class="h-2 w-2 rounded-full bg-green-500 mr-3"></div>
-                  <div>
-                    <div
-                      class="text-sm font-medium transition-colors duration-300"
-                      :class="isDark ? 'text-white' : 'text-gray-900'"
-                    >
-                      200 - 238ms
-                    </div>
-                    <div
-                      class="text-xs transition-colors duration-300"
-                      :class="isDark ? 'text-gray-400' : 'text-gray-500'"
-                    >
-                      4 minutes ago
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="flex items-center justify-between py-3 px-4 rounded-lg transition-colors duration-300"
-                :class="isDark ? 'bg-gray-900' : 'bg-gray-50'"
-              >
-                <div class="flex items-center">
-                  <div class="h-2 w-2 rounded-full bg-yellow-500 mr-3"></div>
-                  <div>
-                    <div
-                      class="text-sm font-medium transition-colors duration-300"
-                      :class="isDark ? 'text-white' : 'text-gray-900'"
-                    >
-                      429 - 1,245ms
-                    </div>
-                    <div
-                      class="text-xs transition-colors duration-300"
-                      :class="isDark ? 'text-gray-400' : 'text-gray-500'"
-                    >
-                      6 minutes ago
+                      {{ formatLastCheck(log.created_at) }}
                     </div>
                   </div>
                 </div>
@@ -568,7 +541,7 @@ const totalChecks = computed(() => {
 
 const logsForSelectedApi = computed(() => {
   if (!selectedApiId.value) return [];
-  return apiStore.logs.filter(log => log.api_id === selectedApiId.value);
+  return apiStore.logs.filter(log => Number(log.api_id) === Number(selectedApiId.value));
 });
 
 const selectedApiStats = computed(() => {
@@ -584,6 +557,9 @@ const selectedApiStats = computed(() => {
 
 onMounted(() => {
   apiStore.loadApis().then(() => {
+    if (apiStore.apis.length > 0 && !selectedApiId.value) {
+      selectApi(apiStore.apis[0].id);
+    }
     startPollingApis();
     // Refresh logs every 60 seconds to keep UI in sync
     setInterval(() => {
@@ -623,8 +599,8 @@ const formatLastCheck = (timestamp) => {
 };
 
 const selectApi = (apiId) => {
-  selectedApiId.value = apiId;
-  selectedApi.value = apiStore.apis.find((api) => api.id === apiId);
+  selectedApiId.value = Number(apiId);
+  selectedApi.value = apiStore.apis.find((api) => Number(api.id) === Number(selectedApiId.value));
 };
 
 const editApi = (api) => {
