@@ -41,7 +41,7 @@ import { Chart, registerables } from "chart.js";
 Chart.register(...registerables);
 
 const props = defineProps({
-  data: {
+  logs: {
     type: Array,
     default: () => [],
   },
@@ -55,12 +55,12 @@ const chartCanvas = ref(null);
 let chart = null;
 
 const statusData = computed(() => {
-  const statuses = props.data.length > 0 ? props.data : generateSampleData();
-  const success = statuses.filter((s) => s.status < 400).length;
+  const statuses = props.logs.length > 0 ? props.logs : generateSampleData();
+  const success = statuses.filter((s) => s.status_code < 400).length;
   const warning = statuses.filter(
-    (s) => s.status >= 400 && s.status < 500
+    (s) => s.status_code >= 400 && s.status_code < 500
   ).length;
-  const error = statuses.filter((s) => s.status >= 500).length;
+  const error = statuses.filter((s) => s.status_code >= 500).length;
 
   return [
     { label: "Success", value: success, color: "#10b981" },
@@ -141,11 +141,11 @@ const generateSampleData = () => {
   for (let i = 0; i < 100; i++) {
     const random = Math.random();
     if (random < 0.85) {
-      data.push({ status: 200 + Math.floor(Math.random() * 200) }); // Success
+      data.push({ status_code: 200 + Math.floor(Math.random() * 200) }); // Success
     } else if (random < 0.95) {
-      data.push({ status: 400 + Math.floor(Math.random() * 100) }); // Warning
+      data.push({ status_code: 400 + Math.floor(Math.random() * 100) }); // Warning
     } else {
-      data.push({ status: 500 + Math.floor(Math.random() * 100) }); // Error
+      data.push({ status_code: 500 + Math.floor(Math.random() * 100) }); // Error
     }
   }
   return data;
@@ -163,7 +163,7 @@ watch(
 );
 
 watch(
-  () => props.data,
+  () => props.logs,
   () => {
     createChart();
   },

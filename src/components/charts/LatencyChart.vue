@@ -57,7 +57,7 @@ import { Chart, registerables } from "chart.js";
 Chart.register(...registerables);
 
 const props = defineProps({
-  data: {
+  logs: {
     type: Array,
     default: () => [],
   },
@@ -71,35 +71,35 @@ const chartCanvas = ref(null);
 let chart = null;
 
 const avgLatency = computed(() => {
-  if (!props.data.length) return 0;
-  const sum = props.data.reduce((acc, point) => acc + point.latency, 0);
-  return Math.round(sum / props.data.length);
+  if (!props.logs.length) return 0;
+  const sum = props.logs.reduce((acc, log) => acc + log.latency_ms, 0);
+  return Math.round(sum / props.logs.length);
 });
 
 const trend = computed(() => {
-  if (props.data.length < 2) return "stable";
-  const recent = props.data.slice(-5);
-  const older = props.data.slice(-10, -5);
+  if (props.logs.length < 2) return "stable";
+  const recent = props.logs.slice(-5);
+  const older = props.logs.slice(-10, -5);
   if (recent.length === 0 || older.length === 0) return "stable";
 
   const recentAvg =
-    recent.reduce((acc, point) => acc + point.latency, 0) / recent.length;
+    recent.reduce((acc, log) => acc + log.latency_ms, 0) / recent.length;
   const olderAvg =
-    older.reduce((acc, point) => acc + point.latency, 0) / older.length;
+    older.reduce((acc, log) => acc + log.latency_ms, 0) / older.length;
 
   return recentAvg > olderAvg ? "up" : "down";
 });
 
 const trendPercentage = computed(() => {
-  if (props.data.length < 2) return 0;
-  const recent = props.data.slice(-5);
-  const older = props.data.slice(-10, -5);
+  if (props.logs.length < 2) return 0;
+  const recent = props.logs.slice(-5);
+  const older = props.logs.slice(-10, -5);
   if (recent.length === 0 || older.length === 0) return 0;
 
   const recentAvg =
-    recent.reduce((acc, point) => acc + point.latency, 0) / recent.length;
+    recent.reduce((acc, log) => acc + log.latency_ms, 0) / recent.length;
   const olderAvg =
-    older.reduce((acc, point) => acc + point.latency, 0) / older.length;
+    older.reduce((acc, log) => acc + log.latency_ms, 0) / older.length;
 
   return Math.abs(Math.round(((recentAvg - olderAvg) / olderAvg) * 100));
 });
@@ -111,17 +111,26 @@ const createChart = () => {
 
   const ctx = chartCanvas.value.getContext("2d");
 
-  // Generate sample data if none provided
-  const chartData = props.data.length > 0 ? props.data : generateSampleData();
+  // Use logs for chart data
+  const chartData = props.logs.length > 0
+    ? props.logs.slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+    : generateSampleData();
 
   chart = new Chart(ctx, {
     type: "line",
     data: {
-      labels: chartData.map((_, index) => `${index + 1}m ago`),
+      labels: chartData.map((log, index) => {
+        const date = new Date(log.created_at);
+        return date.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+      }),
       datasets: [
         {
           label: "Latency (ms)",
-          data: chartData.map((point) => point.latency),
+          data: chartData.map((log) => log.latency_ms),
           borderColor: props.isDark ? "#60a5fa" : "#3b82f6",
           backgroundColor: props.isDark
             ? "rgba(96, 165, 250, 0.1)"
@@ -233,7 +242,7 @@ watch(
 );
 
 watch(
-  () => props.data,
+  () => props.logs,
   () => {
     createChart();
   },
