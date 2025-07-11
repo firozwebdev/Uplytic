@@ -399,7 +399,7 @@
             />
 
             <AnimatedKpiCard
-              :value="selectedApiStats.value && typeof selectedApiStats.value.errors === 'number' ? selectedApiStats.value.errors : 0"
+              :value="logsForSelectedApi.filter(log => log.status_code >= 400).length"
               label="Errors (24h)"
               :icon="ErrorIcon"
               variant="orange"
