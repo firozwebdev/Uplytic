@@ -151,6 +151,7 @@ const handleSubmit = async () => {
 
     // Emit success
     emit("api-added", newApi);
+    emit("close");
   } catch (error) {
     console.error("Error adding API:", error);
   } finally {

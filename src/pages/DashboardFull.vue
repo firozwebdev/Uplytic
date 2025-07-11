@@ -528,8 +528,16 @@
   <AddApiModal
     v-if="showAddApiModal"
     @close="showAddApiModal = false"
-    @api-added="apiStore.loadApis"
+    @api-added="handleApiAdded"
   />
+  <div
+    v-if="showSpinner"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+  >
+    <div
+      class="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"
+    ></div>
+  </div>
 </template>
 
 <script setup>
@@ -549,6 +557,7 @@ import AddApiModal from "../components/ui/AddApiModal.vue";
 
 const apiStore = useApiStore();
 const showAddApiModal = ref(false);
+const showSpinner = ref(false);
 const selectedApiId = ref(null);
 const selectedApi = ref(null);
 
@@ -603,6 +612,19 @@ const deleteApi = (apiId) => {
   if (confirm("Are you sure you want to delete this API?")) {
     apiStore.deleteApi(apiId);
   }
+};
+
+// Add this method to handle spinner and API reload
+const handleApiAdded = async () => {
+  showSpinner.value = true;
+  // Start loading APIs
+  const loadPromise = apiStore.loadApis();
+  // Wait for either 1.2s or APIs to load, whichever is longer
+  await Promise.all([
+    loadPromise,
+    new Promise((resolve) => setTimeout(resolve, 1200)),
+  ]);
+  showSpinner.value = false;
 };
 </script>
 
