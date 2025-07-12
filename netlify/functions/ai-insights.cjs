@@ -33,7 +33,12 @@ exports.handler = async function(event, context) {
     };
   }
 
-  const { prompt, logs, stats, cost } = body;
+  let { prompt, logs, stats, cost } = body;
+
+  // Limit logs to the most recent 40
+  if (Array.isArray(logs) && logs.length > 40) {
+    logs = logs.slice(0, 40);
+  }
 
   // Support multiple keys (comma-separated)
   const keys = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || "")
@@ -55,14 +60,18 @@ exports.handler = async function(event, context) {
   let lastError;
   for (const apiKey of keys) {
     try {
+      // Add a timeout for Gemini response (25s)
       const ai = apiUrl
         ? new GoogleGenAI({ apiKey, apiUrl })
         : new GoogleGenAI({ apiKey });
 
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: aiPrompt,
-      });
+      const response = await Promise.race([
+        ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: aiPrompt,
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("AI is taking too long to respond. Please try again or ask a simpler question.")), 25000))
+      ]);
 
       // If successful, return the result
       return {

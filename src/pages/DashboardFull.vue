@@ -554,6 +554,12 @@
         </div>
       </div>
     </div>
+    <AskUplyticAI
+      :is-dark="isDark"
+      :logs="apiStore.logs"
+      :stats="selectedApiStats.value"
+      :cost="selectedApiStats.value && selectedApiStats.value.costImpact ? selectedApiStats.value.costImpact : {}"
+    />
   </DashboardLayout>
   <AddApiModal
     v-if="showAddApiModal"
@@ -590,6 +596,7 @@ import AddApiModal from "../components/ui/AddApiModal.vue";
 import { startPollingApis } from '../services/pollingService';
 import { pdfExporter } from '../utils/pdfExport';
 import { insightsEngine } from '../utils/insightsEngine';
+import AskUplyticAI from '../components/ui/AskUplyticAI.vue';
 
 const apiStore = useApiStore();
 const showAddApiModal = ref(false);
