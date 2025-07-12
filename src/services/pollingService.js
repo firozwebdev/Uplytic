@@ -1,5 +1,6 @@
 import { useApiStore } from '../stores/api';
 import { supabase } from './supabaseClient';
+import { alertService } from './alertService';
 
 let pollingInterval = null;
 const corsProxy = 'https://corsproxy.io/?'; // For development/demo only
@@ -45,6 +46,21 @@ export function startPollingApis() {
             created_at: new Date().toISOString(),
           },
         ]);
+
+        // Check for alerts after logging
+        const apiLogs = await supabase
+          .from('logs')
+          .select('*')
+          .eq('api_id', api.id)
+          .order('created_at', { ascending: false })
+          .limit(50);
+
+        if (apiLogs.data) {
+          const alerts = await alertService.checkAlerts(api, apiLogs.data);
+          if (alerts.length > 0) {
+            await alertService.saveAlerts(alerts);
+          }
+        }
       } catch (dbErr) {
         console.error(`Failed to log polling result for API (${api.name}):`, dbErr.message || dbErr);
       }

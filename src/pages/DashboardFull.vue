@@ -360,6 +360,37 @@
                   }}
                 </div>
               </div>
+              <!-- PDF Export Button -->
+              <button
+                @click="exportPDF"
+                :disabled="isExporting"
+                class="inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                :class="
+                  isDark
+                    ? 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-offset-gray-900 disabled:opacity-50'
+                    : 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-offset-white disabled:opacity-50'
+                "
+              >
+                <svg
+                  v-if="!isExporting"
+                  class="mr-2 h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                <div
+                  v-else
+                  class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
+                ></div>
+                {{ isExporting ? 'Generating...' : 'Export PDF' }}
+              </button>
             </div>
           </div>
         </div>
@@ -448,51 +479,77 @@
             </div>
           </div>
 
-          <!-- Recent Activity -->
-          <div
-            class="rounded-lg border p-6 transition-colors duration-300"
-            :class="
-              isDark
-                ? 'bg-gray-800 border-gray-700'
-                : 'bg-white border-gray-200'
-            "
-          >
-            <h4
-              class="text-lg font-semibold mb-4 transition-colors duration-300"
-              :class="isDark ? 'text-white' : 'text-gray-900'"
+          <!-- AI Insights & Cost Analysis Section -->
+          <div class="grid gap-6 md:grid-cols-2 mb-8">
+            <!-- AI Insights -->
+            <InsightsBox 
+              :api="selectedApi" 
+              :logs="logsForSelectedApi" 
+              :is-dark="isDark" 
+            />
+
+            <!-- Cost Impact -->
+            <CostImpact 
+              :api="selectedApi" 
+              :logs="logsForSelectedApi" 
+              :is-dark="isDark" 
+            />
+          </div>
+
+          <!-- Recent Activity & Alerts -->
+          <div class="grid gap-6 md:grid-cols-2">
+            <!-- Recent Activity -->
+            <div
+              class="rounded-lg border p-6 transition-colors duration-300"
+              :class="
+                isDark
+                  ? 'bg-gray-800 border-gray-700'
+                  : 'bg-white border-gray-200'
+              "
             >
-              Recent Activity
-            </h4>
-            <div class="space-y-3">
-              <div v-if="logsForSelectedApi.length === 0" class="text-gray-400 text-sm">No recent activity for this API.</div>
-              <div
-                v-for="log in logsForSelectedApi.slice(0, 10)"
-                :key="log.id"
-                class="flex items-center justify-between py-3 px-4 rounded-lg transition-colors duration-300"
-                :class="isDark ? 'bg-gray-900' : 'bg-gray-50'"
+              <h4
+                class="text-lg font-semibold mb-4 transition-colors duration-300"
+                :class="isDark ? 'text-white' : 'text-gray-900'"
               >
-                <div class="flex items-center">
-                  <div
-                    class="h-2 w-2 rounded-full mr-3"
-                    :class="log.status_code < 400 ? 'bg-green-500' : (log.status_code < 500 ? 'bg-yellow-500' : 'bg-red-500')"
-                  ></div>
-                  <div>
+                Recent Activity
+              </h4>
+              <div class="space-y-3">
+                <div v-if="logsForSelectedApi.length === 0" class="text-gray-400 text-sm">No recent activity for this API.</div>
+                <div
+                  v-for="log in logsForSelectedApi.slice(0, 10)"
+                  :key="log.id"
+                  class="flex items-center justify-between py-3 px-4 rounded-lg transition-colors duration-300"
+                  :class="isDark ? 'bg-gray-900' : 'bg-gray-50'"
+                >
+                  <div class="flex items-center">
                     <div
-                      class="text-sm font-medium transition-colors duration-300"
-                      :class="isDark ? 'text-white' : 'text-gray-900'"
-                    >
-                      {{ log.status_code }} - {{ log.latency_ms }}ms
-                    </div>
-                    <div
-                      class="text-xs transition-colors duration-300"
-                      :class="isDark ? 'text-gray-400' : 'text-gray-500'"
-                    >
-                      {{ formatLastCheck(log.created_at) }}
+                      class="h-2 w-2 rounded-full mr-3"
+                      :class="log.status_code < 400 ? 'bg-green-500' : (log.status_code < 500 ? 'bg-yellow-500' : 'bg-red-500')"
+                    ></div>
+                    <div>
+                      <div
+                        class="text-sm font-medium transition-colors duration-300"
+                        :class="isDark ? 'text-white' : 'text-gray-900'"
+                      >
+                        {{ log.status_code }} - {{ log.latency_ms }}ms
+                      </div>
+                      <div
+                        class="text-xs transition-colors duration-300"
+                        :class="isDark ? 'text-gray-400' : 'text-gray-500'"
+                      >
+                        {{ formatLastCheck(log.created_at) }}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+
+            <!-- Alerts Panel -->
+            <AlertsPanel 
+              :api-id="selectedApiId" 
+              :is-dark="isDark" 
+            />
           </div>
         </div>
       </div>
@@ -520,6 +577,9 @@ import { useApiStore } from "../stores/api.js";
 import LatencyChart from "../components/charts/LatencyChart.vue";
 import StatusChart from "../components/charts/StatusChart.vue";
 import AnimatedKpiCard from "../components/dashboard/AnimatedKpiCard.vue";
+import InsightsBox from "../components/dashboard/InsightsBox.vue";
+import CostImpact from "../components/dashboard/CostImpact.vue";
+import AlertsPanel from "../components/dashboard/AlertsPanel.vue";
 import {
   ApiIcon,
   SpeedIcon,
@@ -528,10 +588,13 @@ import {
 } from "../components/icons/ApiIcons.vue";
 import AddApiModal from "../components/ui/AddApiModal.vue";
 import { startPollingApis } from '../services/pollingService';
+import { pdfExporter } from '../utils/pdfExport';
+import { insightsEngine } from '../utils/insightsEngine';
 
 const apiStore = useApiStore();
 const showAddApiModal = ref(false);
 const showSpinner = ref(false);
+const isExporting = ref(false);
 const selectedApiId = ref(null);
 const selectedApi = ref(null);
 
@@ -624,6 +687,26 @@ const handleApiAdded = async () => {
     new Promise((resolve) => setTimeout(resolve, 1200)),
   ]);
   showSpinner.value = false;
+};
+
+// PDF Export functionality
+const exportPDF = async () => {
+  if (!selectedApi.value) return;
+  
+  isExporting.value = true;
+  try {
+    const insights = insightsEngine.analyzeApi(selectedApi.value, logsForSelectedApi.value);
+    await pdfExporter.exportApiReport(
+      selectedApi.value,
+      logsForSelectedApi.value,
+      insights
+    );
+  } catch (error) {
+    console.error('Error exporting PDF:', error);
+    // You could add a toast notification here
+  } finally {
+    isExporting.value = false;
+  }
 };
 </script>
 
