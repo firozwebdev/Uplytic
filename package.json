@@ -9,16 +9,19 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@google/genai": "^1.9.0",
     "@supabase/supabase-js": "^2.50.5",
     "@vueuse/core": "^13.5.0",
     "chart.js": "^4.5.0",
     "html2pdf.js": "^0.10.3",
+    "markdown-it": "^14.1.0",
     "pinia": "^3.0.3",
     "tailwindcss": "^3.4.0",
     "vue": "^3.4.38",
     "vue-chartjs": "^5.3.2",
     "vue-router": "^4.5.1",
-    "vue-toastification": "^2.0.0-rc.5"
+    "vue-toastification": "^2.0.0-rc.5",
+    "vue3-markdown-it": "^1.0.10"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.1.3",
