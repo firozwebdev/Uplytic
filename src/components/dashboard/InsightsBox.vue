@@ -72,7 +72,6 @@
         ></div>
         {{ isGeminiLoading ? 'Getting AI Insight...' : 'Get Gemini AI Insight' }}
       </button>
-      <span v-if="geminiError" class="text-xs text-red-500">{{ geminiError }}</span>
     </div>
     <div v-if="geminiText" class="mb-4 p-4 rounded-lg shadow-sm text-xs whitespace-pre-line flex items-start gap-3 relative"
       :class="[
@@ -91,12 +90,28 @@
         </svg>
       </div>
       <div class="flex-1">
-        <div class="font-semibold mb-1 text-sm" :class="isDark ? 'text-blue-300' : 'text-blue-700'">
-          Gemini AI Insight
+        <div class="flex items-center justify-between mb-1">
+          <div class="font-semibold text-sm" :class="isDark ? 'text-blue-300' : 'text-blue-700'">
+            Gemini AI Insight
+          </div>
+          <!-- Collapse toggle -->
+          <button @click="collapsed = !collapsed" class="ml-2 p-1 rounded transition-colors duration-200"
+            :class="isDark ? 'bg-gray-800 hover:bg-gray-700 text-blue-200' : 'bg-blue-100 hover:bg-blue-200 text-blue-700'"
+            :title="collapsed ? 'Show Insight' : 'Hide Insight'"
+          >
+            <svg v-if="collapsed" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6" />
+            </svg>
+            <svg v-else class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6" />
+            </svg>
+          </button>
         </div>
-        <div class="font-mono leading-relaxed tracking-tight" style="word-break: break-word;">
-          <component :is="markdownComponent" :source="geminiText" :class="isDark ? 'prose prose-invert' : 'prose'" />
-        </div>
+        <transition name="fade">
+          <div v-show="!collapsed">
+            <component :is="markdownComponent" :source="geminiText" :class="isDark ? 'prose prose-invert' : 'prose'" />
+          </div>
+        </transition>
       </div>
       <!-- Copy button -->
       <button
@@ -275,6 +290,26 @@
         </div>
       </div>
     </div>
+
+    <!-- Toast notification (move to top right, always visible) -->
+    <transition name="fade">
+      <div
+        v-if="showToast"
+        class="fixed z-50 top-6 right-6 px-4 py-2 rounded text-sm font-semibold shadow-lg border flex items-center"
+        :class="toastType === 'error'
+          ? (isDark ? 'bg-red-800 text-red-100 border-red-400' : 'bg-red-100 text-red-800 border-red-300')
+          : (isDark ? 'bg-green-800 text-green-100 border-green-400' : 'bg-green-100 text-green-800 border-green-300')"
+        style="pointer-events: none;"
+      >
+        <svg v-if="toastType === 'error'" class="inline h-5 w-5 mr-1 align-text-bottom" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        <svg v-else class="inline h-5 w-5 mr-1 align-text-bottom" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        {{ toastMessage }}
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -282,7 +317,6 @@
 import { ref, computed, nextTick } from 'vue';
 import { insightsEngine } from '../../utils/insightsEngine';
 import { getGeminiInsights } from '../../utils/aiGeminiClient';
-import MarkdownIt from 'markdown-it';
 import { defineAsyncComponent } from 'vue';
 
 const markdownComponent = defineAsyncComponent(() => import('vue3-markdown-it'));
@@ -313,13 +347,15 @@ const recommendations = computed(() => {
 // Gemini AI integration
 const isGeminiLoading = ref(false);
 const geminiText = ref('');
-const geminiError = ref('');
 const copied = ref(false);
+const showToast = ref(false);
+const toastMessage = ref('');
+const toastType = ref('success'); // 'success' or 'error'
+const collapsed = ref(false);
 
 async function fetchGemini() {
   isGeminiLoading.value = true;
   geminiText.value = '';
-  geminiError.value = '';
   try {
     geminiText.value = await getGeminiInsights({
       logs: props.logs,
@@ -328,7 +364,14 @@ async function fetchGemini() {
       prompt: `You are an expert API monitoring assistant. Analyze the following API logs, stats, and cost impact, and provide a concise summary, highlight any anomalies, and suggest actionable recommendations.\n\nLogs: ${JSON.stringify(props.logs)}\n\nStats: ${JSON.stringify(insights.value)}\n\nCost Impact: ${JSON.stringify(insights.value.costImpact)}`
     });
   } catch (e) {
-    geminiError.value = e.message || 'Failed to get AI insight';
+    // Show error as toast, not inline
+    showToast.value = true;
+    toastType.value = 'error';
+    toastMessage.value = e.message || 'Failed to get AI insight';
+    setTimeout(() => {
+      showToast.value = false;
+      toastMessage.value = '';
+    }, 3500);
   } finally {
     isGeminiLoading.value = false;
   }
@@ -338,6 +381,22 @@ async function copyGeminiText() {
   if (!geminiText.value) return;
   await navigator.clipboard.writeText(geminiText.value);
   copied.value = true;
-  setTimeout(() => (copied.value = false), 1200);
+  showToast.value = true;
+  toastType.value = 'success';
+  toastMessage.value = 'Copied!';
+  setTimeout(() => {
+    copied.value = false;
+    showToast.value = false;
+    toastMessage.value = '';
+  }, 1200);
 }
-</script> 
+</script>
+
+<style scoped>
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+</style> 

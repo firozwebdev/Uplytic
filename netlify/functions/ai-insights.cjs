@@ -35,42 +35,51 @@ exports.handler = async function(event, context) {
 
   const { prompt, logs, stats, cost } = body;
 
-  // Use Gemini API key and URL from environment variables
-  const apiKey = process.env.GEMINI_API_KEY;
-  const apiUrl = process.env.GEMINI_API_URL;
+  // Support multiple keys (comma-separated)
+  const keys = (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || "")
+    .split(",")
+    .map(k => k.trim())
+    .filter(Boolean);
 
-  if (!apiKey) {
+  if (!keys.length) {
     return {
       statusCode: 500,
       headers: { "Access-Control-Allow-Origin": "*" },
-      body: JSON.stringify({ error: "GEMINI_API_KEY is not set" })
+      body: JSON.stringify({ error: "No Gemini API keys set" })
     };
   }
 
-  // Pass apiUrl if provided (for custom endpoints)
-  const ai = apiUrl
-    ? new GoogleGenAI({ apiKey, apiUrl })
-    : new GoogleGenAI({ apiKey });
-
-  // Compose the AI prompt
+  const apiUrl = process.env.GEMINI_API_URL;
   const aiPrompt = prompt || `Analyze these API logs and stats: ${JSON.stringify({ logs, stats, cost })}`;
 
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: aiPrompt,
-    });
+  let lastError;
+  for (const apiKey of keys) {
+    try {
+      const ai = apiUrl
+        ? new GoogleGenAI({ apiKey, apiUrl })
+        : new GoogleGenAI({ apiKey });
 
-    return {
-      statusCode: 200,
-      headers: { "Access-Control-Allow-Origin": "*" },
-      body: JSON.stringify({ text: response.text })
-    };
-  } catch (err) {
-    return {
-      statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": "*" },
-      body: JSON.stringify({ error: err.message })
-    };
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: aiPrompt,
+      });
+
+      // If successful, return the result
+      return {
+        statusCode: 200,
+        headers: { "Access-Control-Allow-Origin": "*" },
+        body: JSON.stringify({ text: response.text })
+      };
+    } catch (err) {
+      lastError = err;
+      // Try next key
+    }
   }
+
+  // If all keys fail, return the last error
+  return {
+    statusCode: 500,
+    headers: { "Access-Control-Allow-Origin": "*" },
+    body: JSON.stringify({ error: lastError ? lastError.message : "All Gemini API keys failed" })
+  };
 }; 
