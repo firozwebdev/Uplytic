@@ -39,6 +39,8 @@ export const useApiStore = defineStore("api", () => {
         id: api.id,
         name: api.name,
         url: api.url,
+        lat: api.lat,
+        lng: api.lng,
         uptime: Math.round(uptime * 100) / 100,
         avgLatency: Math.round(avgLatency),
         totalChecks,

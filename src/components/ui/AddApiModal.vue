@@ -80,6 +80,38 @@
             <p v-if="errors.cost_per_hour" class="text-xs text-red-500 mt-1">{{ errors.cost_per_hour }}</p>
           </div>
 
+          <!-- Latitude -->
+          <div>
+            <label for="lat" class="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
+            <input
+              id="lat"
+              v-model="form.lat"
+              type="number"
+              min="-90"
+              max="90"
+              step="any"
+              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              placeholder="37.7749"
+            />
+            <p v-if="errors.lat" class="text-xs text-red-500 mt-1">{{ errors.lat }}</p>
+          </div>
+
+          <!-- Longitude -->
+          <div>
+            <label for="lng" class="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
+            <input
+              id="lng"
+              v-model="form.lng"
+              type="number"
+              min="-180"
+              max="180"
+              step="any"
+              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              placeholder="-122.4194"
+            />
+            <p v-if="errors.lng" class="text-xs text-red-500 mt-1">{{ errors.lng }}</p>
+          </div>
+
           <!-- Public Access -->
           <div class="flex items-center">
             <input
@@ -131,12 +163,16 @@ const form = ref({
   url: "",
   cost_per_hour: 0,
   is_public: false,
+  lat: '',
+  lng: '',
 });
 
 const errors = ref({
   name: '',
   url: '',
   cost_per_hour: '',
+  lat: '',
+  lng: '',
 });
 
 function validateUrl(url) {
@@ -150,7 +186,7 @@ function validateUrl(url) {
 
 function validateForm() {
   let valid = true;
-  errors.value = { name: '', url: '', cost_per_hour: '' };
+  errors.value = { name: '', url: '', cost_per_hour: '', lat: '', lng: '' };
 
   if (!form.value.name.trim()) {
     errors.value.name = 'API Name is required.';
@@ -176,6 +212,20 @@ function validateForm() {
     errors.value.cost_per_hour = 'Cost per Hour cannot be negative.';
     valid = false;
   }
+  if (form.value.lat === '' || isNaN(form.value.lat)) {
+    errors.value.lat = 'Latitude is required and must be a number.';
+    valid = false;
+  } else if (form.value.lat < -90 || form.value.lat > 90) {
+    errors.value.lat = 'Latitude must be between -90 and 90.';
+    valid = false;
+  }
+  if (form.value.lng === '' || isNaN(form.value.lng)) {
+    errors.value.lng = 'Longitude is required and must be a number.';
+    valid = false;
+  } else if (form.value.lng < -180 || form.value.lng > 180) {
+    errors.value.lng = 'Longitude must be between -180 and 180.';
+    valid = false;
+  }
   return valid;
 }
 
@@ -191,6 +241,8 @@ const handleSubmit = async () => {
       url: form.value.url,
       cost_per_hour: form.value.cost_per_hour,
       is_public: form.value.is_public,
+      lat: parseFloat(form.value.lat),
+      lng: parseFloat(form.value.lng),
     });
 
     // Reset form
@@ -199,6 +251,8 @@ const handleSubmit = async () => {
       url: "",
       cost_per_hour: 0,
       is_public: false,
+      lat: '',
+      lng: '',
     };
 
     // Emit success

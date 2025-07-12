@@ -440,6 +440,14 @@
             />
           </div>
 
+          <!-- Outage Map Section -->
+          <div class="mb-8">
+            <h3 class="text-xl font-bold mb-4 transition-colors duration-300" :class="isDark ? 'text-white' : 'text-gray-900'">
+              Real-Time Outage Map
+            </h3>
+            <OutageMap :apis="mapApisForOutageMap" />
+          </div>
+
           <!-- Charts Section -->
           <div class="grid gap-6 md:grid-cols-2 mb-8">
             <!-- Latency Chart -->
@@ -600,7 +608,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import DashboardLayout from "../layouts/DashboardLayout.vue";
 import { useApiStore } from "../stores/api.js";
 import LatencyChart from "../components/charts/LatencyChart.vue";
@@ -621,6 +629,7 @@ import { pdfExporter } from '../utils/pdfExport';
 import { insightsEngine } from '../utils/insightsEngine';
 import AskUplyticAI from '../components/ui/AskUplyticAI.vue';
 import PostmortemModal from '../components/dashboard/PostmortemModal.vue';
+import OutageMap from '../components/dashboard/OutageMap.vue';
 
 const apiStore = useApiStore();
 const showAddApiModal = ref(false);
@@ -648,6 +657,23 @@ const selectedApiStats = computed(() => {
       errors: 0,
     }
   );
+});
+
+const mapApisForOutageMap = computed(() => {
+  const stats = apiStore.apiStats.find(s => s.id === selectedApiId.value);
+  const api = apiStore.apis.find(a => a.id === selectedApiId.value);
+  if (!stats || !api) return [];
+  const lat = Number(api.lat);
+  const lng = Number(api.lng);
+  if (isNaN(lat) || isNaN(lng)) return [];
+  return [{
+    id: stats.id,
+    name: stats.name,
+    lat,
+    lng,
+    status: stats.status,
+    lastCheck: stats.lastCheck,
+  }];
 });
 
 onMounted(() => {
@@ -740,6 +766,10 @@ const exportPDF = async () => {
     isExporting.value = false;
   }
 };
+
+watch(mapApisForOutageMap, (val) => {
+  console.log('Map APIs for OutageMap:', val);
+}, { immediate: true });
 </script>
 
 <style scoped>
