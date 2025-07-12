@@ -482,12 +482,27 @@
           <!-- AI Insights & Cost Analysis Section -->
           <div class="grid gap-6 md:grid-cols-2 mb-8">
             <!-- AI Insights -->
-            <InsightsBox 
-              :api="selectedApi" 
-              :logs="logsForSelectedApi" 
-              :is-dark="isDark" 
-            />
-
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span></span>
+                <button
+                  @click="showPostmortemModal = true"
+                  class="inline-flex items-center rounded-lg px-3 py-2 text-xs font-medium shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  :class="isDark ? 'bg-blue-900 text-blue-100 hover:bg-blue-800 focus:ring-offset-gray-900' : 'bg-blue-100 text-blue-700 hover:bg-blue-200 focus:ring-offset-white'"
+                >
+                  <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3" />
+                    <circle cx="12" cy="12" r="10" stroke-width="2" />
+                  </svg>
+                  Generate Postmortem
+                </button>
+              </div>
+              <InsightsBox 
+                :api="selectedApi" 
+                :logs="logsForSelectedApi" 
+                :is-dark="isDark" 
+              />
+            </div>
             <!-- Cost Impact -->
             <CostImpact 
               :api="selectedApi" 
@@ -574,6 +589,14 @@
       class="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"
     ></div>
   </div>
+  <!-- Postmortem Modal -->
+  <PostmortemModal
+    :open="showPostmortemModal"
+    :onClose="() => (showPostmortemModal = false)"
+    :logs="logsForSelectedApi"
+    :stats="selectedApiStats.value"
+    :isDark="isDark"
+  />
 </template>
 
 <script setup>
@@ -597,6 +620,7 @@ import { startPollingApis } from '../services/pollingService';
 import { pdfExporter } from '../utils/pdfExport';
 import { insightsEngine } from '../utils/insightsEngine';
 import AskUplyticAI from '../components/ui/AskUplyticAI.vue';
+import PostmortemModal from '../components/dashboard/PostmortemModal.vue';
 
 const apiStore = useApiStore();
 const showAddApiModal = ref(false);
@@ -604,6 +628,7 @@ const showSpinner = ref(false);
 const isExporting = ref(false);
 const selectedApiId = ref(null);
 const selectedApi = ref(null);
+const showPostmortemModal = ref(false);
 
 const totalChecks = computed(() => {
   return apiStore.logs.length;
