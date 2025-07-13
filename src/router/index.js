@@ -13,6 +13,11 @@ const routes = [
     component: Dashboard,
   },
   {
+    path: "/cost-analysis",
+    name: "CostAnalysis",
+    component: () => import("../pages/CostAnalysisPage.vue"),
+  },
+  {
     path: "/public/:uuid",
     name: "PublicDashboard",
     component: PublicDashboard,
