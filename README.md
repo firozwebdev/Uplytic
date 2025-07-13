@@ -1,6 +1,6 @@
 # 🚀 Uplytic - API Health Monitoring Platform
 
-A production-grade API monitoring solution built for the DevNetwork Hackathon 2025. Monitor your APIs in real-time with AI-powered insights, cost analysis, and automated alerts.
+A production-grade API monitoring solution built for the DevNetwork Hackathon 2025. Monitor your APIs in real-time with AI-powered insights, cost analysis, automated alerts, and a beautiful interactive world map.
 
 ## ✨ Features
 
@@ -10,11 +10,20 @@ A production-grade API monitoring solution built for the DevNetwork Hackathon 20
 - **Uptime Calculation** - Track availability percentages
 - **Status Code Monitoring** - Monitor HTTP response codes
 
+### 🗺️ Interactive World Map
+- **Global API Visualization** - See all your APIs on an interactive world map
+- **Real-time Status Markers** - Beautiful animated markers showing API health
+- **Geographic Distribution** - Monitor APIs across different regions
+- **Outage Alerts** - Visual indicators for down APIs with pulsing animations
+- **Smart Centering** - Map automatically centers on selected APIs
+- **Responsive Design** - Works perfectly on all devices
+
 ### 🤖 AI-Powered Insights
 - **Automated Issue Detection** - AI engine identifies performance anomalies
 - **Smart Recommendations** - Actionable insights for optimization
 - **Pattern Recognition** - Detects latency spikes and error patterns
 - **Predictive Analysis** - Early warning system for potential issues
+- **Natural Language Queries** - Ask Uplytic AI about your API performance
 
 ### 💰 Cost Impact Analysis
 - **Downtime Cost Calculation** - Financial impact of API outages
@@ -27,12 +36,14 @@ A production-grade API monitoring solution built for the DevNetwork Hackathon 20
 - **Historical Data** - Track performance over time
 - **Custom Dashboards** - Tailored views for different APIs
 - **Export Capabilities** - PDF reports with charts and insights
+- **Multiple Dashboard Views** - Full, Simple, and New dashboard layouts
 
 ### 🚨 Alert System
 - **Real-time Notifications** - Instant alerts for critical issues
 - **Configurable Thresholds** - Custom alert rules
 - **Alert Management** - Mark alerts as resolved
 - **Alert Statistics** - Track alert patterns and resolution times
+- **Postmortem Analysis** - Detailed incident analysis and documentation
 
 ### 🌐 Public Sharing
 - **Public Dashboards** - Share API status via unique URLs
@@ -44,7 +55,11 @@ A production-grade API monitoring solution built for the DevNetwork Hackathon 20
 - **Frontend**: Vue 3 + Vite + TailwindCSS + Pinia
 - **Backend**: Supabase (PostgreSQL, Auth, RLS, Edge Functions)
 - **Charts**: Chart.js + Vue-ChartJS
+- **Maps**: Leaflet + Vue-Leaflet
 - **PDF Export**: html2pdf.js
+- **AI Integration**: Google Gemini AI
+- **Markdown**: markdown-it + vue3-markdown-it
+- **Notifications**: Vue Toastification
 - **Hosting**: Netlify
 - **CI/CD**: Netlify Git Integration
 
@@ -92,15 +107,15 @@ npm run build
 ```
 src/
 ├── components/
-│   ├── charts/          # Chart.js components
-│   ├── dashboard/       # Dashboard widgets
-│   ├── icons/          # SVG icons
-│   └── ui/             # Reusable UI components
-├── layouts/            # Page layouts
-├── pages/              # Vue router pages
-├── services/           # API and external services
-├── stores/             # Pinia state management
-├── utils/              # Utility functions
+│   ├── charts/          # Chart.js components (LatencyChart, StatusChart, SimpleChart)
+│   ├── dashboard/       # Dashboard widgets (OutageMap, AlertsPanel, CostImpact, etc.)
+│   ├── icons/          # SVG icons (ApiIcons)
+│   └── ui/             # Reusable UI components (AddApiModal, AskUplyticAI)
+├── layouts/            # Page layouts (DashboardLayout)
+├── pages/              # Vue router pages (DashboardFull, DashboardNew, DashboardSimple, PublicDashboard)
+├── services/           # API and external services (apiService, alertService, logService, pollingService)
+├── stores/             # Pinia state management (api store)
+├── utils/              # Utility functions (aiGeminiClient, insightsEngine, pdfExport)
 └── router/             # Vue router configuration
 ```
 
@@ -113,6 +128,12 @@ src/
   - Error rate: 30%
   - Latency threshold: 2000ms
   - Uptime threshold: 95%
+
+### Map Configuration
+- **Default Zoom**: 2 (world view)
+- **Marker Animations**: Pulsing, glowing effects for status indicators
+- **Auto-centering**: Map centers on selected API
+- **Responsive Design**: Adapts to different screen sizes
 
 ### Cost Analysis
 Set `cost_per_hour` for each API to enable financial impact calculations.
@@ -131,6 +152,7 @@ Enable `is_public` flag on APIs to generate shareable dashboard URLs.
 - `cost_per_hour` - For financial calculations
 - `uuid` - For public dashboard URLs
 - `is_public` - Controls public access
+- `lat`, `lng` - Geographic coordinates for map display
 
 ## 🎨 Customization
 
@@ -139,6 +161,9 @@ The app supports dark/light themes with TailwindCSS classes.
 
 ### Charts
 Modify chart configurations in `components/charts/` directory.
+
+### Maps
+Customize map styling and markers in `components/dashboard/OutageMap.vue`.
 
 ### Alerts
 Customize alert rules in `utils/insightsEngine.js`.
@@ -156,6 +181,7 @@ Customize alert rules in `utils/insightsEngine.js`.
 - **Lazy Loading** - Components load on demand
 - **Caching** - Efficient data caching strategies
 - **Cleanup Functions** - Automatic cleanup of old data
+- **Map Performance** - Efficient marker rendering and animations
 
 ## 🚀 Deployment
 
@@ -170,6 +196,20 @@ Customize alert rules in `utils/insightsEngine.js`.
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
+
+## 🗺️ Map Features
+
+### Interactive Markers
+- **Healthy APIs**: Green pulsing markers with smooth animations
+- **Down APIs**: Red markers with alert indicators and enhanced animations
+- **Hover Effects**: Scale and glow effects on marker interaction
+- **Popups**: Detailed API information with status, response codes, and last check time
+
+### Visual Enhancements
+- **Glassmorphism Design**: Modern semi-transparent UI elements
+- **Animated Alerts**: Floating outage notifications with bounce effects
+- **Status Cards**: Beautiful cards showing total, healthy, and down API counts
+- **Responsive Layout**: Optimized for desktop, tablet, and mobile devices
 
 ## 🤝 Contributing
 
@@ -189,6 +229,8 @@ Built for DevNetwork Hackathon 2025
 - **Kong** - API management concepts
 - **Tierpoint** - Infrastructure monitoring ideas
 - **Foxit** - PDF generation tools
+- **Leaflet** - Interactive mapping library
+- **Google Gemini** - AI-powered insights
 
 ## 📞 Support
 
