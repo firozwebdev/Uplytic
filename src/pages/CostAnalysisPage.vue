@@ -35,7 +35,7 @@
     <div class="container mx-auto px-6 py-8">
       <!-- API Selection -->
       <div class="mb-8">
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+        <div class="rounded-xl p-6 shadow-lg border transition-colors duration-300" :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
           <h2 class="text-2xl font-bold mb-4">Select API for Analysis</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div
@@ -46,19 +46,19 @@
               :class="
                 selectedApi?.id === api.id
                   ? isDark
-                    ? 'border-purple-500 bg-purple-900/20'
-                    : 'border-purple-500 bg-purple-50'
+                    ? 'border-purple-500 bg-gray-800 hover:bg-gray-700 text-white'
+                    : 'border-purple-500 bg-purple-50 hover:bg-purple-100 text-gray-900'
                   : isDark
-                    ? 'border-gray-600 bg-gray-700/50 hover:border-gray-500'
-                    : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                    ? 'border-gray-700 bg-gray-800 hover:bg-gray-700 text-gray-200'
+                    : 'border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-900'
               "
             >
               <div class="flex items-center justify-between mb-2">
                 <h3 class="font-semibold">{{ api.name }}</h3>
                 <div class="w-3 h-3 rounded-full" :class="getStatusColor(api)"></div>
               </div>
-              <p class="text-sm opacity-75 mb-2">{{ api.url }}</p>
-              <div class="text-sm font-medium">
+              <p class="text-sm mb-2" :class="isDark ? 'text-gray-400' : 'text-gray-600'">{{ api.url }}</p>
+              <div class="text-sm font-medium" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
                 Cost: ${{ api.cost_per_hour }}/hr
               </div>
             </div>
