@@ -128,14 +128,49 @@ import { LMap, LTileLayer, LMarker, LPopup } from '@vue-leaflet/vue-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-// Placeholder icons - using beautiful animated icons
+// Placeholder icons - using beautiful animated icons with inline styles
 const healthyIcon = L.divIcon({
   className: 'leaflet-div-icon healthy-marker',
   html: `
-    <div class="marker-container">
-      <div class="marker-dot healthy"></div>
-      <div class="marker-pulse healthy-pulse"></div>
-      <div class="marker-glow healthy-glow"></div>
+    <div style="
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    ">
+      <div style="
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        border: 3px solid #ffffff;
+        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+        position: relative;
+        z-index: 3;
+        animation: healthyGlow 2s ease-in-out infinite alternate;
+      "></div>
+      <div style="
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: rgba(34, 197, 94, 0.3);
+        border: 2px solid rgba(34, 197, 94, 0.5);
+        z-index: 2;
+        animation: pulse 2s infinite;
+      "></div>
+      <div style="
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(34, 197, 94, 0.4) 0%, transparent 70%);
+        filter: blur(4px);
+        z-index: 1;
+        animation: glow 3s ease-in-out infinite;
+      "></div>
     </div>
   `,
   iconSize: [32, 32],
@@ -145,11 +180,63 @@ const healthyIcon = L.divIcon({
 const outageIcon = L.divIcon({
   className: 'leaflet-div-icon outage-marker',
   html: `
-    <div class="marker-container">
-      <div class="marker-dot outage"></div>
-      <div class="marker-pulse outage-pulse"></div>
-      <div class="marker-glow outage-glow"></div>
-      <div class="marker-alert">!</div>
+    <div style="
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    ">
+      <div style="
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        border: 3px solid #ffffff;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        position: relative;
+        z-index: 3;
+        animation: outageGlow 1.5s ease-in-out infinite alternate;
+      "></div>
+      <div style="
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: rgba(239, 68, 68, 0.4);
+        border: 2px solid rgba(239, 68, 68, 0.6);
+        z-index: 2;
+        animation: pulse 1.2s infinite;
+      "></div>
+      <div style="
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(239, 68, 68, 0.5) 0%, transparent 70%);
+        filter: blur(4px);
+        z-index: 1;
+        animation: glow 2s ease-in-out infinite;
+      "></div>
+      <div style="
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 16px;
+        height: 16px;
+        background: #fbbf24;
+        color: #92400e;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: bold;
+        z-index: 4;
+        animation: alertPulse 1s ease-in-out infinite;
+        box-shadow: 0 2px 8px rgba(251, 191, 36, 0.4);
+      ">!</div>
     </div>
   `,
   iconSize: [40, 40],
@@ -366,7 +453,7 @@ function onMapReady(map) {
   box-shadow: 0 2px 8px rgba(251, 191, 36, 0.4);
 }
 
-/* Animations */
+/* Marker animations */
 @keyframes pulse {
   0% {
     transform: scale(1);
@@ -420,28 +507,10 @@ function onMapReady(map) {
   }
 }
 
-/* Hover effects */
-.leaflet-div-icon:hover .marker-dot {
-  transform: scale(1.3);
+/* Hover effects for markers */
+.leaflet-div-icon:hover {
+  transform: scale(1.2);
   transition: transform 0.2s ease;
-}
-
-.leaflet-div-icon:hover .marker-pulse {
-  animation-duration: 0.8s;
-}
-
-.leaflet-div-icon:hover .marker-glow {
-  animation-duration: 1.5s;
-}
-
-.leaflet-div-icon:hover .marker-alert {
-  animation-duration: 0.5s;
-}
-
-/* Ensure div icons are visible */
-.leaflet-div-icon {
-  background: transparent !important;
-  border: none !important;
 }
 
 /* Debug: Add a border to see the map container */
