@@ -270,6 +270,22 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 - **Theme Responsive**: Beautiful dark/light mode support
 - **Mobile Optimized**: Responsive design for all devices
 
+## 🆕 2024 Dashboard UX Improvements
+
+### Inline API Details Expansion
+- When you click any API card, all details (general info, real-time outage map, charts, AI insights, advanced cost analysis, recent activity, alerts, and notifications) are shown immediately below that card, inline in the dashboard grid.
+- Only one API's details can be open at a time. Clicking another API closes the previous one and opens the new one.
+- All dashboard widgets and features remain fully functional in the expanded view.
+- No API details are shown by default on first load, keeping the dashboard clean and focused.
+
+### Animated Loading Experience
+- When expanding API details, a professional animated loading message ("Loading API Details...") is shown for 2 seconds before the details appear, providing a smooth and modern user experience.
+- The loading state uses theme-aware styling and subtle animation for a polished look.
+
+### Professional Theme & UX
+- All features and widgets are fully responsive and support both dark and light themes.
+- The dashboard now offers a more intuitive, user-friendly, and visually appealing experience for both technical and non-technical users.
+
 ## 🤝 Contributing
 
 1. Fork the repository
