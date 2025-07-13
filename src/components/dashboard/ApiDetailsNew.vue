@@ -269,7 +269,7 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useApiStore } from "../../stores/api";
 
 const props = defineProps({

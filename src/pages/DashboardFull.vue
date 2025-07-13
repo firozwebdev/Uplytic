@@ -151,468 +151,298 @@
       </div>
 
       <div v-else class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <div
-          v-for="(api, index) in apiStore.apis"
-          :key="api.id"
-          class="group relative rounded-xl p-6 shadow-sm border transition-all duration-500 cursor-pointer hover:shadow-2xl hover:scale-105"
-          :class="[
-            isDark
-              ? 'bg-gradient-to-br from-gray-800 via-gray-750 to-gray-800 border-gray-700 hover:border-gray-600 hover:bg-gradient-to-br hover:from-gray-750 hover:via-gray-700 hover:to-gray-750'
-              : 'bg-gradient-to-br from-white via-gray-50 to-white border-gray-200 hover:border-gray-300 hover:bg-gradient-to-br hover:from-gray-50 hover:via-white hover:to-gray-50',
-            selectedApiId === api.id
-              ? isDark
-                ? 'ring-2 ring-blue-500 border-blue-500/50 shadow-blue-500/25'
-                : 'ring-2 ring-blue-500 shadow-blue-500/25'
-              : '',
-          ]"
-          :style="{ animationDelay: `${index * 100}ms` }"
-          @click="selectApi(api.id)"
-        >
-          <!-- Status Indicator -->
-          <div class="absolute top-4 right-4">
-            <div
-              class="h-3 w-3 rounded-full"
-              :class="getStatusColor(api)"
-            ></div>
-          </div>
-
-          <!-- API Info -->
-          <div class="mb-4">
-            <h3
-              class="text-lg font-semibold mb-1 transition-colors duration-300"
-              :class="isDark ? 'text-white' : 'text-gray-900'"
-            >
-              {{ api.name }}
-            </h3>
-            <p
-              class="text-sm truncate transition-colors duration-300"
-              :class="isDark ? 'text-gray-400' : 'text-gray-500'"
-            >
-              {{ api.url }}
-            </p>
-          </div>
-
-          <!-- Stats -->
-          <div class="grid grid-cols-2 gap-4 mb-4">
-            <div>
+        <template v-for="(api, index) in apiStore.apis" :key="api.id">
+          <div
+            class="group relative rounded-xl p-6 shadow-sm border transition-all duration-500 cursor-pointer hover:shadow-2xl hover:scale-105"
+            :class="[
+              isDark
+                ? 'bg-gradient-to-br from-gray-800 via-gray-750 to-gray-800 border-gray-700 hover:border-gray-600 hover:bg-gradient-to-br hover:from-gray-750 hover:via-gray-700 hover:to-gray-750'
+                : 'bg-gradient-to-br from-white via-gray-50 to-white border-gray-200 hover:border-gray-300 hover:bg-gradient-to-br hover:from-gray-50 hover:via-white hover:to-gray-50',
+              expandedApiId === api.id
+                ? isDark
+                  ? 'ring-2 ring-blue-500 border-blue-500/50 shadow-blue-500/25'
+                  : 'ring-2 ring-blue-500 shadow-blue-500/25'
+                : '',
+            ]"
+            :style="{ animationDelay: `${index * 100}ms` }"
+            @click="toggleExpand(api.id)"
+          >
+            <!-- Status Indicator -->
+            <div class="absolute top-4 right-4">
               <div
-                class="text-2xl font-bold transition-colors duration-300"
-                :class="isDark ? 'text-white' : 'text-gray-900'"
-              >
-                {{ getApiStats(api.id).uptime }}%
-              </div>
-              <div
-                class="text-xs transition-colors duration-300"
-                :class="isDark ? 'text-gray-400' : 'text-gray-500'"
-              >
-                Uptime
-              </div>
+                class="h-3 w-3 rounded-full"
+                :class="getStatusColor(api)"
+              ></div>
             </div>
-            <div>
-              <div
-                class="text-2xl font-bold transition-colors duration-300"
-                :class="isDark ? 'text-white' : 'text-gray-900'"
-              >
-                {{ getApiStats(api.id).avgLatency }}ms
-              </div>
-              <div
-                class="text-xs transition-colors duration-300"
-                :class="isDark ? 'text-gray-400' : 'text-gray-500'"
-              >
-                Avg Latency
-              </div>
-            </div>
-          </div>
 
-          <!-- Actions -->
-          <div class="flex items-center justify-between">
-            <div class="flex space-x-2">
-              <button
-                v-if="api.is_public"
-                @click.stop="goToPublicDashboard(api)"
-                class="rounded-lg p-2 transition-colors duration-200"
-                :class="
-                  isDark
-                    ? 'text-blue-400 hover:bg-blue-900/50 hover:text-blue-300'
-                    : 'text-blue-600 hover:bg-blue-100 hover:text-blue-700'
-                "
-                title="View Public Dashboard"
-              >
-                <svg
-                  class="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </button>
-              <button
-                @click.stop="editApi(api)"
-                class="rounded-lg p-2 transition-colors duration-200"
-                :class="
-                  isDark
-                    ? 'text-gray-400 hover:bg-gray-700 hover:text-gray-300'
-                    : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
-                "
-              >
-                <svg
-                  class="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                  />
-                </svg>
-              </button>
-              <button
-                @click.stop="deleteApi(api.id)"
-                class="rounded-lg p-2 transition-colors duration-200"
-                :class="
-                  isDark
-                    ? 'text-gray-400 hover:bg-red-900/50 hover:text-red-400'
-                    : 'text-gray-400 hover:bg-red-100 hover:text-red-600'
-                "
-              >
-                <svg
-                  class="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-              </button>
-            </div>
-            <div
-              class="text-xs transition-colors duration-300"
-              :class="isDark ? 'text-gray-500' : 'text-gray-400'"
-            >
-              {{ formatLastCheck(getApiStats(api.id).lastCheck) }}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Selected API Details -->
-    <div v-if="selectedApi" class="mb-8">
-      <div
-        class="rounded-xl shadow-sm border overflow-hidden transition-colors duration-300"
-        :class="
-          isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-        "
-      >
-        <!-- Header -->
-        <div
-          class="px-6 py-4 border-b transition-colors duration-300"
-          :class="
-            isDark
-              ? 'bg-gradient-to-r from-gray-800 to-gray-700 border-gray-600'
-              : 'bg-gradient-to-r from-gray-50 to-gray-100 border-gray-200'
-          "
-        >
-          <div class="flex items-center justify-between">
-            <div>
+            <!-- API Info -->
+            <div class="mb-4">
               <h3
-                class="text-xl font-semibold transition-colors duration-300"
+                class="text-lg font-semibold mb-1 transition-colors duration-300"
                 :class="isDark ? 'text-white' : 'text-gray-900'"
               >
-                {{ selectedApi.name }}
+                {{ api.name }}
               </h3>
               <p
-                class="text-sm mt-1 transition-colors duration-300"
-                :class="isDark ? 'text-gray-400' : 'text-gray-600'"
+                class="text-sm truncate transition-colors duration-300"
+                :class="isDark ? 'text-gray-400' : 'text-gray-500'"
               >
-                {{ selectedApi.url }}
+                {{ api.url }}
               </p>
             </div>
-            <div class="flex items-center space-x-4">
-              <div class="text-right">
+
+            <!-- Stats -->
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div>
                 <div
-                  class="text-sm transition-colors duration-300"
-                  :class="isDark ? 'text-gray-400' : 'text-gray-500'"
-                >
-                  Status
-                </div>
-                <div class="flex items-center mt-1">
-                  <div
-                    class="h-2 w-2 rounded-full mr-2"
-                    :class="getStatusColor(selectedApi)"
-                  ></div>
-                  <span
-                    class="text-sm font-medium transition-colors duration-300"
-                    :class="isDark ? 'text-green-400' : 'text-green-700'"
-                  >
-                    {{
-                      selectedApiStats.value && typeof selectedApiStats.value.status !== 'undefined'
-                        ? (selectedApiStats.value.status < 400 ? 'Healthy' : (selectedApiStats.value.status ? 'Error' : 'Unknown'))
-                        : 'Unknown'
-                    }}
-                  </span>
-                </div>
-              </div>
-              <div class="text-right">
-                <div
-                  class="text-sm transition-colors duration-300"
-                  :class="isDark ? 'text-gray-400' : 'text-gray-500'"
-                >
-                  Last Check
-                </div>
-                <div
-                  class="text-sm font-medium transition-colors duration-300"
+                  class="text-2xl font-bold transition-colors duration-300"
                   :class="isDark ? 'text-white' : 'text-gray-900'"
                 >
-                  {{
-                    selectedApiStats.value && typeof selectedApiStats.value.lastCheck !== 'undefined'
-                      ? formatLastCheck(selectedApiStats.value.lastCheck)
-                      : 'Never'
-                  }}
+                  {{ getApiStats(api.id).uptime }}%
+                </div>
+                <div
+                  class="text-xs transition-colors duration-300"
+                  :class="isDark ? 'text-gray-400' : 'text-gray-500'"
+                >
+                  Uptime
                 </div>
               </div>
-              <!-- Enhanced Cost Analysis Button -->
-              <router-link
-                to="/cost-analysis"
-                class="inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 mr-2"
-                :class="
-                  isDark
-                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 focus:ring-offset-gray-900'
-                    : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 focus:ring-offset-white'
-                "
-              >
-                <svg class="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-                </svg>
-                Enhanced Cost Analysis
-              </router-link>
-
-              <!-- PDF Export Button -->
-              <button
-                @click="exportPDF"
-                :disabled="isExporting"
-                class="inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                :class="
-                  isDark
-                    ? 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-offset-gray-900 disabled:opacity-50'
-                    : 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-offset-white disabled:opacity-50'
-                "
-              >
-                <svg
-                  v-if="!isExporting"
-                  class="mr-2 h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
+              <div>
                 <div
-                  v-else
-                  class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
-                ></div>
-                {{ isExporting ? 'Generating...' : 'Export PDF' }}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Content -->
-        <div class="p-6">
-          <!-- Animated KPI Cards -->
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <AnimatedKpiCard
-              :value="apiStore.apis.length"
-              label="APIs Monitored"
-              :icon="ApiIcon"
-              variant="blue"
-              :is-dark="isDark"
-              trend="up"
-              trend-value="+2"
-            />
-
-            <AnimatedKpiCard
-              :value="selectedApiStats.value && typeof selectedApiStats.value.avgLatency === 'number' ? selectedApiStats.value.avgLatency : 0"
-              label="Avg Response Time"
-              :icon="SpeedIcon"
-              variant="green"
-              :is-dark="isDark"
-              trend="down"
-              trend-value="-12ms"
-            />
-
-            <AnimatedKpiCard
-              :value="selectedApiStats.value && typeof selectedApiStats.value.uptime === 'number' ? selectedApiStats.value.uptime : 0"
-              label="Uptime"
-              :icon="UptimeIcon"
-              variant="purple"
-              :is-dark="isDark"
-              trend="up"
-              trend-value="+0.2%"
-            />
-
-            <AnimatedKpiCard
-              :value="logsForSelectedApi.filter(log => log.status_code >= 400).length"
-              label="Errors (24h)"
-              :icon="ErrorIcon"
-              variant="orange"
-              :is-dark="isDark"
-              trend="down"
-              trend-value="-1"
-            />
-          </div>
-
-          <!-- Outage Map Section -->
-          <div class="mb-8">
-            <h3 class="text-xl font-bold mb-4 transition-colors duration-300" :class="isDark ? 'text-white' : 'text-gray-900'">
-              Real-Time Outage Map
-            </h3>
-            <OutageMap :apis="mapApisForOutageMap" :center="mapCenter" :zoom="mapZoom" />
-          </div>
-
-          <!-- Charts Section -->
-          <div class="grid gap-6 md:grid-cols-2 mb-8">
-            <!-- Latency Chart -->
-            <div
-              class="rounded-lg border p-6 transition-colors duration-300"
-              :class="
-                isDark
-                  ? 'bg-gray-800 border-gray-700'
-                  : 'bg-white border-gray-200'
-              "
-            >
-              <h4
-                class="text-lg font-semibold mb-4 transition-colors duration-300"
-                :class="isDark ? 'text-white' : 'text-gray-900'"
-              >
-                Response Time Trends
-              </h4>
-              <LatencyChart :logs="logsForSelectedApi" :is-dark="isDark" />
-            </div>
-
-            <!-- Status Distribution Chart -->
-            <div
-              class="rounded-lg border p-6 transition-colors duration-300"
-              :class="
-                isDark
-                  ? 'bg-gray-800 border-gray-700'
-                  : 'bg-white border-gray-200'
-              "
-            >
-              <h4
-                class="text-lg font-semibold mb-4 transition-colors duration-300"
-                :class="isDark ? 'text-white' : 'text-gray-900'"
-              >
-                Status Distribution
-              </h4>
-              <StatusChart :logs="logsForSelectedApi" :is-dark="isDark" />
-            </div>
-          </div>
-
-          <!-- AI Insights & Cost Analysis Section -->
-          <div class="grid gap-6 md:grid-cols-2 mb-8">
-            <!-- AI Insights -->
-            <div>
-              <div class="flex items-center justify-between mb-2">
-                <span></span>
-                <button
-                  @click="showPostmortemModal = true"
-                  class="inline-flex items-center rounded-lg px-3 py-2 text-xs font-medium shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                  :class="isDark ? 'bg-blue-900 text-blue-100 hover:bg-blue-800 focus:ring-offset-gray-900' : 'bg-blue-100 text-blue-700 hover:bg-blue-200 focus:ring-offset-white'"
+                  class="text-2xl font-bold transition-colors duration-300"
+                  :class="isDark ? 'text-white' : 'text-gray-900'"
                 >
-                  <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3" />
-                    <circle cx="12" cy="12" r="10" stroke-width="2" />
+                  {{ getApiStats(api.id).avgLatency }}ms
+                </div>
+                <div
+                  class="text-xs transition-colors duration-300"
+                  :class="isDark ? 'text-gray-400' : 'text-gray-500'"
+                >
+                  Avg Latency
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center justify-between">
+              <div class="flex space-x-2">
+                <button
+                  v-if="api.is_public"
+                  @click.stop="goToPublicDashboard(api)"
+                  class="rounded-lg p-2 transition-colors duration-200"
+                  :class="
+                    isDark
+                      ? 'text-blue-400 hover:bg-blue-900/50 hover:text-blue-300'
+                      : 'text-blue-600 hover:bg-blue-100 hover:text-blue-700'
+                  "
+                  title="View Public Dashboard"
+                >
+                  <svg
+                    class="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
-                  Generate Postmortem
+                </button>
+                <button
+                  @click.stop="editApi(api)"
+                  class="rounded-lg p-2 transition-colors duration-200"
+                  :class="
+                    isDark
+                      ? 'text-gray-400 hover:bg-gray-700 hover:text-gray-300'
+                      : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
+                  "
+                >
+                  <svg
+                    class="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                </button>
+                <button
+                  @click.stop="deleteApi(api.id)"
+                  class="rounded-lg p-2 transition-colors duration-200"
+                  :class="
+                    isDark
+                      ? 'text-gray-400 hover:bg-red-900/50 hover:text-red-400'
+                      : 'text-gray-400 hover:bg-red-100 hover:text-red-600'
+                  "
+                >
+                  <svg
+                    class="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
                 </button>
               </div>
-              <InsightsBox 
-                :api="selectedApi" 
-                :logs="logsForSelectedApi" 
-                :is-dark="isDark" 
-              />
-            </div>
-            <!-- Cost Impact -->
-            <CostImpact 
-              :api="selectedApi" 
-              :logs="logsForSelectedApi" 
-              :is-dark="isDark" 
-            />
-          </div>
-
-          <!-- Recent Activity & Alerts -->
-          <div class="grid gap-6 md:grid-cols-2">
-            <!-- Recent Activity -->
-            <div
-              class="rounded-lg border p-6 transition-colors duration-300"
-              :class="
-                isDark
-                  ? 'bg-gray-800 border-gray-700'
-                  : 'bg-white border-gray-200'
-              "
-            >
-              <h4
-                class="text-lg font-semibold mb-4 transition-colors duration-300"
-                :class="isDark ? 'text-white' : 'text-gray-900'"
+              <div
+                class="text-xs transition-colors duration-300"
+                :class="isDark ? 'text-gray-500' : 'text-gray-400'"
               >
-                Recent Activity
-              </h4>
-              <div class="space-y-3">
-                <div v-if="logsForSelectedApi.length === 0" class="text-gray-400 text-sm">No recent activity for this API.</div>
-                <div
-                  v-for="log in logsForSelectedApi.slice(0, 10)"
-                  :key="log.id"
-                  class="flex items-center justify-between py-3 px-4 rounded-lg transition-colors duration-300"
-                  :class="isDark ? 'bg-gray-900' : 'bg-gray-50'"
-                >
-                  <div class="flex items-center">
-                    <div
-                      class="h-2 w-2 rounded-full mr-3"
-                      :class="log.status_code < 400 ? 'bg-green-500' : (log.status_code < 500 ? 'bg-yellow-500' : 'bg-red-500')"
-                    ></div>
-                    <div>
-                      <div
-                        class="text-sm font-medium transition-colors duration-300"
-                        :class="isDark ? 'text-white' : 'text-gray-900'"
-                      >
-                        {{ log.status_code }} - {{ log.latency_ms }}ms
-                      </div>
-                      <div
-                        class="text-xs transition-colors duration-300"
-                        :class="isDark ? 'text-gray-400' : 'text-gray-500'"
-                      >
-                        {{ formatLastCheck(log.created_at) }}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                {{ formatLastCheck(getApiStats(api.id).lastCheck) }}
               </div>
             </div>
-
-            <!-- Alerts Panel -->
-            <AlertsPanel 
-              :api-id="selectedApiId" 
-              :is-dark="isDark" 
-            />
           </div>
-        </div>
+          <transition name="fade">
+            <div v-if="expandedApiId === api.id || loadingApiId === api.id" class="md:col-span-2 lg:col-span-3 col-span-full">
+              <transition name="fade">
+                <div v-if="loadingApiId === api.id" class="flex items-center justify-center py-16">
+                  <span class="text-lg font-semibold text-blue-600 animate-pulse">Loading API Details...</span>
+                </div>
+                <div v-else>
+                  <div
+                    class="rounded-xl shadow-sm border overflow-hidden transition-colors duration-300"
+                    :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
+                  >
+                    <!-- Header -->
+                    <div
+                      class="px-6 py-4 border-b transition-colors duration-300"
+                      :class="isDark ? 'bg-gradient-to-r from-gray-800 to-gray-700 border-gray-600' : 'bg-gradient-to-r from-gray-50 to-gray-100 border-gray-200'"
+                    >
+                      <div class="flex items-center justify-between">
+                        <div>
+                          <h3 class="text-xl font-semibold transition-colors duration-300" :class="isDark ? 'text-white' : 'text-gray-900'">
+                            {{ api.name }}
+                          </h3>
+                          <p class="text-sm mt-1 transition-colors duration-300" :class="isDark ? 'text-gray-400' : 'text-gray-600'">
+                            {{ api.url }}
+                          </p>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                          <div class="text-right">
+                            <div class="text-sm transition-colors duration-300" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Status</div>
+                            <div class="flex items-center mt-1">
+                              <div class="h-2 w-2 rounded-full mr-2" :class="getStatusColor(api)"></div>
+                              <span class="text-sm font-medium transition-colors duration-300" :class="isDark ? 'text-green-400' : 'text-green-700'">
+                                {{ getApiStatusText(api) }}
+                              </span>
+                            </div>
+                          </div>
+                          <div class="text-right">
+                            <div class="text-sm transition-colors duration-300" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Last Check</div>
+                            <div class="text-sm font-medium transition-colors duration-300" :class="isDark ? 'text-white' : 'text-gray-900'">
+                              {{ formatLastCheck(getApiStats(api.id).lastCheck) }}
+                            </div>
+                          </div>
+                          <!-- Enhanced Cost Analysis Button -->
+                          <router-link
+                            to="/cost-analysis"
+                            class="inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 mr-2"
+                            :class="isDark ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 focus:ring-offset-gray-900' : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 focus:ring-offset-white'"
+                          >
+                            <svg class="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                            </svg>
+                            Enhanced Cost Analysis
+                          </router-link>
+                          <!-- PDF Export Button -->
+                          <button
+                            @click.stop="exportPDF(api)"
+                            :disabled="isExporting"
+                            class="inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                            :class="isDark ? 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-offset-gray-900 disabled:opacity-50' : 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-offset-white disabled:opacity-50'"
+                          >
+                            <svg v-if="!isExporting" class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <div v-else class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                            {{ isExporting ? 'Generating...' : 'Export PDF' }}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- KPI Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                      <AnimatedKpiCard :value="apiStore.apis.length" label="APIs Monitored" :icon="ApiIcon" variant="blue" :is-dark="isDark" trend="up" trend-value="+2" />
+                      <AnimatedKpiCard :value="getApiStats(api.id).avgLatency" label="Avg Response Time" :icon="SpeedIcon" variant="green" :is-dark="isDark" trend="down" trend-value="-12ms" />
+                      <AnimatedKpiCard :value="getApiStats(api.id).uptime" label="Uptime" :icon="UptimeIcon" variant="purple" :is-dark="isDark" trend="up" trend-value="+0.2%" />
+                      <AnimatedKpiCard :value="logsForApi(api.id).filter(log => log.status_code >= 400).length" label="Errors (24h)" :icon="ErrorIcon" variant="orange" :is-dark="isDark" trend="down" trend-value="-1" />
+                    </div>
+                    <!-- Outage Map Section -->
+                    <div class="mb-8">
+                      <h3 class="text-xl font-bold mb-4 transition-colors duration-300" :class="isDark ? 'text-white' : 'text-gray-900'">Real-Time Outage Map</h3>
+                      <OutageMap :apis="mapApisForOutageMap" :center="mapCenter" :zoom="mapZoom" />
+                    </div>
+                    <!-- Charts Section -->
+                    <div class="grid gap-6 md:grid-cols-2 mb-8">
+                      <div class="rounded-lg border p-6 transition-colors duration-300" :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
+                        <h4 class="text-lg font-semibold mb-4 transition-colors duration-300" :class="isDark ? 'text-white' : 'text-gray-900'">Response Time Trends</h4>
+                        <LatencyChart :logs="logsForApi(api.id)" :is-dark="isDark" />
+                      </div>
+                      <div class="rounded-lg border p-6 transition-colors duration-300" :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
+                        <h4 class="text-lg font-semibold mb-4 transition-colors duration-300" :class="isDark ? 'text-white' : 'text-gray-900'">Status Distribution</h4>
+                        <StatusChart :logs="logsForApi(api.id)" :is-dark="isDark" />
+                      </div>
+                    </div>
+                    <!-- AI Insights & Cost Analysis Section -->
+                    <div class="grid gap-6 md:grid-cols-2 mb-8">
+                      <div>
+                        <div class="flex items-center justify-between mb-2">
+                          <span></span>
+                          <button @click.stop="showPostmortemModal = true" class="inline-flex items-center rounded-lg px-3 py-2 text-xs font-medium shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" :class="isDark ? 'bg-blue-900 text-blue-100 hover:bg-blue-800 focus:ring-offset-gray-900' : 'bg-blue-100 text-blue-700 hover:bg-blue-200 focus:ring-offset-white'">
+                            <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3" />
+                              <circle cx="12" cy="12" r="10" stroke-width="2" />
+                            </svg>
+                            Generate Postmortem
+                          </button>
+                        </div>
+                        <InsightsBox :api="api" :logs="logsForApi(api.id)" :is-dark="isDark" />
+                      </div>
+                      <CostImpact :api="api" :logs="logsForApi(api.id)" :is-dark="isDark" />
+                    </div>
+                    <!-- Recent Activity & Alerts -->
+                    <div class="grid gap-6 md:grid-cols-2">
+                      <div class="rounded-lg border p-6 transition-colors duration-300" :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
+                        <h4 class="text-lg font-semibold mb-4 transition-colors duration-300" :class="isDark ? 'text-white' : 'text-gray-900'">Recent Activity</h4>
+                        <div class="space-y-3">
+                          <div v-if="logsForApi(api.id).length === 0" class="text-gray-400 text-sm">No recent activity for this API.</div>
+                          <div v-for="log in logsForApi(api.id).slice(0, 10)" :key="log.id" class="flex items-center justify-between py-3 px-4 rounded-lg transition-colors duration-300" :class="isDark ? 'bg-gray-900' : 'bg-gray-50'">
+                            <div class="flex items-center">
+                              <div class="h-2 w-2 rounded-full mr-3" :class="log.status_code < 400 ? 'bg-green-500' : (log.status_code < 500 ? 'bg-yellow-500' : 'bg-red-500')"></div>
+                              <div>
+                                <div class="text-sm font-medium transition-colors duration-300" :class="isDark ? 'text-white' : 'text-gray-900'">
+                                  {{ log.status_code }} - {{ log.latency_ms }}ms
+                                </div>
+                                <div class="text-xs transition-colors duration-300" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+                                  {{ formatLastCheck(log.created_at) }}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <AlertsPanel :api-id="api.id" :is-dark="isDark" />
+                    </div>
+                  </div>
+                  <!-- Postmortem Modal -->
+                  <PostmortemModal :open="showPostmortemModal" :onClose="() => (showPostmortemModal = false)" :logs="logsForApi(api.id)" :stats="getApiStats(api.id)" :isDark="isDark" />
+                </div>
+              </transition>
+            </div>
+          </transition>
+        </template>
       </div>
     </div>
+
     <AskUplyticAI
       :is-dark="isDark"
       :logs="apiStore.logs"
@@ -667,11 +497,14 @@ import AskUplyticAI from '../components/ui/AskUplyticAI.vue';
 import PostmortemModal from '../components/dashboard/PostmortemModal.vue';
 import OutageMap from '../components/dashboard/OutageMap.vue';
 import { useRouter } from 'vue-router';
+import ApiDetailsNew from "../components/dashboard/ApiDetailsNew.vue";
 
 const apiStore = useApiStore();
 const showAddApiModal = ref(false);
 const showSpinner = ref(false);
 const isExporting = ref(false);
+const expandedApiId = ref(null);
+const loadingApiId = ref(null);
 const selectedApiId = ref(null);
 const selectedApi = ref(null);
 const showPostmortemModal = ref(false);
@@ -859,6 +692,30 @@ function copyPublicLink(api) {
 function goToPublicDashboard(api) {
   router.push(`/public/${api.uuid}`);
 }
+
+const toggleExpand = (apiId) => {
+  if (expandedApiId.value === apiId) {
+    expandedApiId.value = null;
+    loadingApiId.value = null;
+    return;
+  }
+  // Close any open details immediately
+  expandedApiId.value = null;
+  loadingApiId.value = apiId;
+  setTimeout(() => {
+    expandedApiId.value = apiId;
+    loadingApiId.value = null;
+  }, 2000); // 2s loading duration
+};
+
+const logsForApi = (apiId) => apiStore.logs.filter(log => log.api_id === apiId);
+const getApiStatusText = (api) => {
+  const stats = getApiStats(api.id);
+  if (!stats.lastCheck) return "Unknown";
+  if (stats.status < 400) return "Healthy";
+  if (stats.status >= 400) return "Error";
+  return "Unknown";
+};
 </script>
 
 <style scoped>
