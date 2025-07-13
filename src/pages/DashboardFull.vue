@@ -228,6 +228,26 @@
           <div class="flex items-center justify-between">
             <div class="flex space-x-2">
               <button
+                v-if="api.is_public"
+                @click.stop="goToPublicDashboard(api)"
+                class="rounded-lg p-2 transition-colors duration-200"
+                :class="
+                  isDark
+                    ? 'text-blue-400 hover:bg-blue-900/50 hover:text-blue-300'
+                    : 'text-blue-600 hover:bg-blue-100 hover:text-blue-700'
+                "
+                title="View Public Dashboard"
+              >
+                <svg
+                  class="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </button>
+              <button
                 @click.stop="editApi(api)"
                 class="rounded-lg p-2 transition-colors duration-200"
                 :class="
@@ -630,6 +650,7 @@ import { insightsEngine } from '../utils/insightsEngine';
 import AskUplyticAI from '../components/ui/AskUplyticAI.vue';
 import PostmortemModal from '../components/dashboard/PostmortemModal.vue';
 import OutageMap from '../components/dashboard/OutageMap.vue';
+import { useRouter } from 'vue-router';
 
 const apiStore = useApiStore();
 const showAddApiModal = ref(false);
@@ -638,6 +659,8 @@ const isExporting = ref(false);
 const selectedApiId = ref(null);
 const selectedApi = ref(null);
 const showPostmortemModal = ref(false);
+const copiedApiId = ref(null);
+const router = useRouter();
 
 const totalChecks = computed(() => {
   return apiStore.logs.length;
@@ -699,8 +722,6 @@ const mapZoom = computed(() => {
   }
   return 2; // Default zoom for overview
 });
-
-
 
 onMounted(() => {
   apiStore.loadApis().then(() => {
@@ -801,6 +822,27 @@ watch(mapApisForOutageMap, (val) => {
 watch([selectedApi, mapCenter, mapZoom], ([api, center, zoom]) => {
   console.log('Selected API changed:', api?.name, 'Map center:', center, 'Map zoom:', zoom);
 }, { immediate: true });
+
+function getPublicDashboardUrl(api) {
+  return `/public/${api.uuid}`;
+}
+
+function copyPublicLink(api) {
+  const input = document.createElement('input');
+  input.value = getPublicDashboardUrl(api);
+  document.body.appendChild(input);
+  input.select();
+  document.execCommand('copy');
+  document.body.removeChild(input);
+  copiedApiId.value = api.id;
+  setTimeout(() => {
+    copiedApiId.value = null;
+  }, 2000);
+}
+
+function goToPublicDashboard(api) {
+  router.push(`/public/${api.uuid}`);
+}
 </script>
 
 <style scoped>

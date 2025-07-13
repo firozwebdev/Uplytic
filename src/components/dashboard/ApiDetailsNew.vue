@@ -10,6 +10,15 @@
         <div>
           <h3 class="text-xl font-semibold text-gray-900">{{ api.name }}</h3>
           <p class="text-sm text-gray-600 mt-1">{{ api.url }}</p>
+          <div v-if="api.is_public" class="mt-2 flex items-center space-x-2">
+            <span class="text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded px-2 py-1 select-all cursor-pointer hover:bg-blue-100 transition" @click="copyPublicLink">
+              {{ publicDashboardUrl }}
+            </span>
+            <span v-if="copied" class="text-xs text-green-600">Copied!</span>
+            <svg v-else class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 17l4 4 4-4m0-5V3" />
+            </svg>
+          </div>
         </div>
         <div class="flex items-center space-x-4">
           <div class="text-right">
@@ -336,5 +345,24 @@ const getLogStatusColor = (log) => {
 const formatTimestamp = (timestamp) => {
   const date = new Date(timestamp);
   return date.toLocaleString();
+};
+
+const publicDashboardUrl = computed(() => {
+  return `/public/${props.api.uuid}`;
+});
+
+const copied = ref(false);
+
+const copyPublicLink = () => {
+  const input = document.createElement('input');
+  input.value = publicDashboardUrl.value;
+  document.body.appendChild(input);
+  input.select();
+  document.execCommand('copy');
+  document.body.removeChild(input);
+  copied.value = true;
+  setTimeout(() => {
+    copied.value = false;
+  }, 2000);
 };
 </script>
