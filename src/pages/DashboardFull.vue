@@ -445,7 +445,7 @@
             <h3 class="text-xl font-bold mb-4 transition-colors duration-300" :class="isDark ? 'text-white' : 'text-gray-900'">
               Real-Time Outage Map
             </h3>
-            <OutageMap :apis="mapApisForOutageMap" />
+            <OutageMap :apis="mapApisForOutageMap" :center="mapCenter" :zoom="mapZoom" />
           </div>
 
           <!-- Charts Section -->
@@ -660,21 +660,47 @@ const selectedApiStats = computed(() => {
 });
 
 const mapApisForOutageMap = computed(() => {
-  const stats = apiStore.apiStats.find(s => s.id === selectedApiId.value);
-  const api = apiStore.apis.find(a => a.id === selectedApiId.value);
-  if (!stats || !api) return [];
-  const lat = Number(api.lat);
-  const lng = Number(api.lng);
-  if (isNaN(lat) || isNaN(lng)) return [];
-  return [{
-    id: stats.id,
-    name: stats.name,
-    lat,
-    lng,
-    status: stats.status,
-    lastCheck: stats.lastCheck,
-  }];
+  return apiStore.apis
+    .map(api => {
+      const stats = apiStore.apiStats.find(s => s.id === api.id);
+      const lat = Number(api.lat);
+      const lng = Number(api.lng);
+      
+      // Only include APIs with valid coordinates
+      if (isNaN(lat) || isNaN(lng)) return null;
+      
+      return {
+        id: api.id,
+        name: api.name,
+        lat,
+        lng,
+        status: stats?.status || 200,
+        lastCheck: stats?.lastCheck || new Date().toISOString(),
+      };
+    })
+    .filter(api => api !== null); // Remove null entries
 });
+
+// Map center and zoom based on selected API
+const mapCenter = computed(() => {
+  if (selectedApi.value && selectedApi.value.lat && selectedApi.value.lng) {
+    const lat = Number(selectedApi.value.lat);
+    const lng = Number(selectedApi.value.lng);
+    if (!isNaN(lat) && !isNaN(lng)) {
+      return [lat, lng];
+    }
+  }
+  return [20, 0]; // Default center
+});
+
+const mapZoom = computed(() => {
+  if (selectedApi.value && selectedApi.value.lat && selectedApi.value.lng) {
+    return 6; // Zoom in when API is selected, but not too much
+  }
+  return 2; // Default zoom for overview
+});
+
+
 
 onMounted(() => {
   apiStore.loadApis().then(() => {
@@ -769,6 +795,11 @@ const exportPDF = async () => {
 
 watch(mapApisForOutageMap, (val) => {
   console.log('Map APIs for OutageMap:', val);
+}, { immediate: true });
+
+// Debug: Watch for changes in selected API and map center/zoom
+watch([selectedApi, mapCenter, mapZoom], ([api, center, zoom]) => {
+  console.log('Selected API changed:', api?.name, 'Map center:', center, 'Map zoom:', zoom);
 }, { immediate: true });
 </script>
 
