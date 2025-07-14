@@ -1,10 +1,6 @@
 <template>
   <DashboardLayout v-slot="{ isDark }">
-    <!-- TEMP: Test PDF Export Button -->
-    <div class="p-4 bg-yellow-100 border-b border-yellow-300 flex items-center gap-4">
-      <button @click="testPdfExport" class="px-4 py-2 rounded bg-blue-600 text-white font-bold">Test PDF Export (Debug)</button>
-      <span class="text-xs text-gray-700">Check console for PDF export logs and see if PDF is generated with test content.</span>
-    </div>
+    
     <!-- Welcome Section -->
     <div class="mb-8">
       <div
