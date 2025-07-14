@@ -1,5 +1,10 @@
 <template>
   <DashboardLayout v-slot="{ isDark }">
+    <!-- TEMP: Test PDF Export Button -->
+    <div class="p-4 bg-yellow-100 border-b border-yellow-300 flex items-center gap-4">
+      <button @click="testPdfExport" class="px-4 py-2 rounded bg-blue-600 text-white font-bold">Test PDF Export (Debug)</button>
+      <span class="text-xs text-gray-700">Check console for PDF export logs and see if PDF is generated with test content.</span>
+    </div>
     <!-- Welcome Section -->
     <div class="mb-8">
       <div
@@ -716,6 +721,20 @@ const getApiStatusText = (api) => {
   if (stats.status >= 400) return "Error";
   return "Unknown";
 };
+
+// TEMP: Test PDF Export Handler
+function testPdfExport() {
+  alert('Test PDF Export triggered!');
+  const testApi = { name: 'Test API', url: 'https://api.example.com' };
+  const testStats = { uptime: 99.9, avgLatency: 123, totalChecks: 42, status: 200 };
+  const testLogs = [
+    { created_at: new Date().toISOString(), status_code: 200, latency_ms: 120 },
+    { created_at: new Date().toISOString(), status_code: 500, latency_ms: 300 },
+  ];
+  const testInsights = { summary: 'All good.', insights: [{ title: 'No issues', message: 'API is healthy', recommendation: 'Keep monitoring', severity: 'info' }] };
+  const testCost = { totalLoss: 0, downtimeMinutes: 0, costPerHour: 0 };
+  pdfExporter.exportDashboard(testApi, testStats, testLogs, testInsights, testCost);
+}
 </script>
 
 <style scoped>
