@@ -664,16 +664,18 @@ const handleApiAdded = async () => {
 };
 
 // PDF Export functionality
-const exportPDF = async () => {
-  if (!selectedApi.value) return;
-  
+const exportPDF = async (api) => {
+  if (!api) return;
   isExporting.value = true;
   try {
-    const insights = insightsEngine.analyzeApi(selectedApi.value, logsForSelectedApi.value);
+    const logs = apiStore.logs.filter(log => Number(log.api_id) === Number(api.id));
+    const insights = insightsEngine.analyzeApi(api, logs);
+    const costImpact = insights.costImpact || {};
     await pdfExporter.exportApiReport(
-      selectedApi.value,
-      logsForSelectedApi.value,
-      insights
+      api,
+      logs,
+      insights,
+      costImpact
     );
   } catch (error) {
     console.error('Error exporting PDF:', error);
