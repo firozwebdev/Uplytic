@@ -11,171 +11,170 @@ export class PDFExporter {
     };
   }
 
-  async exportApiReport(api, logs, insights, costImpact = {}) {
+  exportApiReport(api, logs, insights, costImpact = {}) {
     const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-    const margin = 15;
-    let y = margin;
+    const margin = 18;
+    const safeBottom = 20;        // footer-এর আগে বাফার
+    let y = 28;                   // header-এর নিচে শুরু
 
-    // --- HEADER WITH LOGO ---
-    // Draw logo background
-    doc.setFillColor(37, 99, 235); // blue
-    doc.roundedRect(margin, y - 2, 16, 16, 4, 4, 'F');
-    // Draw SVG logo (approximate, as jsPDF can't natively render SVG, so use path)
-    doc.setDrawColor(255, 255, 255);
-    doc.setLineWidth(0.7);
-    doc.setFillColor(255, 255, 255);
-    doc.path(UPLYTIC_LOGO_SVG, 'D', { x: margin + 2, y: y + 2, scale: 0.5 });
-    // Title next to logo
-    doc.setFontSize(18);
-    doc.setTextColor('#2563eb');
-    doc.text('Uplytic', margin + 20, y + 7);
+    // --- Color palette ---
+    const c = {
+      primary: [37, 99, 235],
+      accent:  [16, 185, 129],
+      warn:    [245, 158, 11],
+      danger:  [239, 68, 68],
+      gray:    [107, 114, 128],
+      bg:      [249, 250, 251]
+    };
+
+    // --- Header (fixed height 22 mm) ---
+    (() => {
+      doc.setFillColor(...c.primary);
+      doc.rect(0, 0, 210, 22, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(18);
+      doc.text('Uplytic', margin, 13);
+      doc.setFontSize(10);
+      doc.text('API Health Report', margin, 18);
+      doc.text(new Date().toLocaleString(), 210 - margin, 13, { align: 'right' });
+    })();
+
+    // --- Safe Y check ---
+    const ensureSpace = h => {
+      if (y + h > 297 - safeBottom) {
+        doc.addPage();
+        y = margin;
+      }
+    };
+
+    // --- API Overview Card ---
+    ensureSpace(16);
+    doc.setFillColor(...c.bg);
+    doc.roundedRect(margin, y, 210 - 2 * margin, 14, 3, 3, 'F');
     doc.setFontSize(10);
-    doc.setTextColor('#6b7280');
-    doc.text('API Health Monitoring Report', margin + 20, y + 13);
+    doc.setTextColor(...c.gray);
+    doc.text(`API: ${api.name}`, margin + 3, y + 5);
+    doc.text(`URL: ${api.url}`, margin + 3, y + 10);
+    y += 20;
+
+    // --- KPI cards 2×3 grid ---
+    const stats = (() => {
+      const total = logs.length;
+      const ok = logs.filter(l => l.status_code < 400).length;
+      const up = total ? Math.round((ok / total) * 1000) / 10 : 0;
+      const avg = total ? Math.round(logs.reduce((s, l) => s + l.latency_ms, 0) / total) : 0;
+      return [
+        { label: 'Uptime', value: `${up}%`, color: c.accent },
+        { label: 'Avg Latency', value: `${avg} ms`, color: c.accent },
+        { label: 'Checks', value: total, color: c.primary },
+        { label: '4xx', value: logs.filter(l => l.status_code >= 400 && l.status_code < 500).length, color: c.warn },
+        { label: '5xx', value: logs.filter(l => l.status_code >= 500).length, color: c.danger },
+        { label: 'Network', value: logs.filter(l => l.status_code === 0).length, color: c.danger }
+      ];
+    })();
+    const cardW = 27, cardH = 17, gap = 4;
+    stats.forEach((s, i) => {
+      const col = i % 3;
+      if (col === 0 && i !== 0) { y += cardH + gap; }
+      ensureSpace(cardH);
+      const cardX = margin + col * (cardW + gap);
+      doc.setFillColor(...s.color);
+      doc.roundedRect(cardX, y, cardW, cardH, 2, 2, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(11);
+      doc.text(String(s.value), cardX + cardW / 2, y + 7, { align: 'center' });
+      doc.setFontSize(7);
+      doc.text(String(s.label), cardX + cardW / 2, y + 12, { align: 'center' });
+    });
+    y += cardH + gap + 4;
+
+    // --- Cost Analysis ---
+    ensureSpace(16);
+    doc.setFontSize(12);
+    doc.setTextColor(...c.warn);
+    doc.text('Cost Impact (24 h)', margin, y);
+    y += 5;
+    const loss = costImpact.totalLoss || 0;
+    const downMin = costImpact.downtimeMinutes || 0;
+    doc.setFillColor(...c.bg);
+    doc.roundedRect(margin, y, 210 - 2 * margin, 12, 2, 2, 'F');
+    doc.setTextColor(...c.gray);
+    doc.text(`Loss: $${loss.toFixed(2)}   Downtime: ${downMin} min`, margin + 3, y + 7);
     y += 18;
 
-    // API Info
+    // --- Recent Activity Table ---
+    ensureSpace(30);
     doc.setFontSize(12);
-    doc.setTextColor('#333');
-    doc.text(`API: ${api.name || ''}`, margin, y);
-    y += 7;
-    doc.text(`URL: ${api.url || ''}`, margin, y);
-    y += 7;
-    doc.text(`Generated: ${new Date().toLocaleString()}`, margin, y);
-    y += 10;
-
-    // Key Metrics
-    doc.setFontSize(14);
-    doc.setTextColor('#1f2937');
-    doc.text('Key Metrics', margin, y);
-    y += 7;
-    const stats = {
-      uptime: 0,
-      avgLatency: 0,
-      totalChecks: logs.length,
-      status: logs.length > 0 ? logs[0].status_code : 0
-    };
-    let clientErrors = 0, serverErrors = 0, networkErrors = 0;
-    if (logs.length > 0) {
-      const successfulChecks = logs.filter(log => log.status_code < 400).length;
-      stats.uptime = Math.round((successfulChecks / logs.length) * 100 * 100) / 100;
-      stats.avgLatency = Math.round(logs.reduce((sum, log) => sum + log.latency_ms, 0) / logs.length);
-      clientErrors = logs.filter(log => log.status_code >= 400 && log.status_code < 500).length;
-      serverErrors = logs.filter(log => log.status_code >= 500).length;
-      networkErrors = logs.filter(log => log.status_code === 0).length;
-    }
-    doc.setFontSize(11);
-    doc.text(`Uptime: ${stats.uptime}%`, margin, y);
-    y += 6;
-    doc.text(`Avg Latency: ${stats.avgLatency}ms`, margin, y);
-    y += 6;
-    doc.text(`Total Checks: ${stats.totalChecks}`, margin, y);
-    y += 6;
-    doc.text(`Status: ${stats.status < 400 ? 'Operational' : 'Issues Detected'}`, margin, y);
-    y += 6;
-    doc.text(`4xx Errors: ${clientErrors}   5xx Errors: ${serverErrors}   Network Errors: ${networkErrors}`, margin, y);
-    y += 10;
-
-    // --- ADVANCED COST ANALYSIS ---
-    doc.setFontSize(14);
-    doc.setTextColor('#92400e');
-    doc.text('Advanced Cost Analysis (24h)', margin, y);
-    y += 7;
-    doc.setFontSize(11);
-    doc.setTextColor('#333');
-    // Use real cost data if available
-    const totalLoss = costImpact.totalLoss ?? 0;
-    const downtimeMinutes = costImpact.downtimeMinutes ?? 0;
-    const costPerHour = costImpact.costPerHour ?? 0;
-    const downtimeLoss = costImpact.downtimeLoss ?? 0;
-    const errorLoss = costImpact.errorLoss ?? 0;
-    const latencyLoss = costImpact.latencyLoss ?? 0;
-    const costData = [
-      { label: 'Downtime Loss', value: downtimeLoss },
-      { label: 'Error Loss', value: errorLoss },
-      { label: 'Latency Loss', value: latencyLoss },
-      { label: 'Total', value: totalLoss },
-    ];
-    doc.text(`Total Loss: $${totalLoss.toFixed(2)}   Downtime: ${downtimeMinutes} min   Cost Rate: $${costPerHour}/hr`, margin, y);
-    y += 8;
-    // Draw a simple bar chart for cost breakdown
-    const chartX = margin;
-    let chartY = y;
-    const barHeight = 6;
-    const barMaxWidth = 60;
-    const maxVal = Math.max(...costData.slice(0, 3).map(d => d.value), 1); // avoid divide by zero
-    costData.slice(0, 3).forEach((d, i) => {
-      const barWidth = (d.value / maxVal) * barMaxWidth;
-      doc.setFillColor(255, 193, 7); // amber
-      doc.rect(chartX, chartY, barWidth, barHeight, 'F');
-      doc.setTextColor('#333');
-      doc.text(`${d.label}: $${d.value.toFixed(2)}`, chartX + barMaxWidth + 4, chartY + barHeight - 1);
-      chartY += barHeight + 3;
-    });
-    y = chartY + 2;
-
-    // Recent Activity Table
-    doc.setFontSize(14);
-    doc.setTextColor('#1f2937');
-    doc.text('Recent Activity (Last 10 Checks)', margin, y);
-    y += 4;
+    doc.setTextColor(...c.primary);
+    doc.text('Recent Checks', margin, y);
+    y += 5;
     autoTable(doc, {
       startY: y,
-      head: [['Time', 'Status', 'Response Time (ms)']],
-      body: logs.slice(0, 10).map(log => [
-        new Date(log.created_at).toLocaleString(),
-        log.status_code,
-        log.latency_ms
+      head: [['Time', 'Status', 'Latency (ms)']],
+      body: logs.slice(0, 10).map(l => [
+        new Date(l.created_at).toLocaleTimeString(),
+        l.status_code,
+        l.latency_ms
       ]),
       margin: { left: margin, right: margin },
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [37, 99, 235] },
+      styles: { fontSize: 9, cellPadding: 2.5 },
+      headStyles: { fillColor: c.primary, textColor: 255 },
+      alternateRowStyles: { fillColor: c.bg },
+      tableLineColor: c.gray,
+      tableLineWidth: 0.2
     });
-    y = doc.lastAutoTable.finalY + 10;
+    y = doc.lastAutoTable.finalY + 8;
 
-    // AI Insights (if any)
-    if (insights && (insights.summary || (insights.insights && insights.insights.length > 0))) {
-      doc.setFontSize(14);
-      doc.setTextColor('#1f2937');
-      doc.text('AI Insights & Recommendations', margin, y);
-      y += 7;
-      doc.setFontSize(11);
-      doc.setTextColor('#333');
-      if (insights.summary) {
-        doc.text(insights.summary, margin, y);
-        y += 7;
-      }
-      if (insights.insights && insights.insights.length > 0) {
-        insights.insights.forEach(insight => {
-          doc.setFont(undefined, 'bold');
-          doc.text(insight.title, margin, y);
-          y += 5;
-          doc.setFont(undefined, 'normal');
-          doc.text(insight.message, margin, y);
-          y += 5;
-          doc.setTextColor('#059669');
-          doc.text(`💡 ${insight.recommendation}`, margin, y);
-          doc.setTextColor('#333');
-          y += 7;
-        });
-      }
-    }
+    // --- AI Insights ---
+// --- AI Insights as a compact table ---
+if (insights?.insights?.length) {
+  ensureSpace(30);
 
-    // Footer: Add to every page
+  doc.setFontSize(12);
+  doc.setTextColor(...c.accent);
+  doc.text('AI Insights', margin, y);
+  y += 5;
+
+  
+  const insightRows = insights.insights.map(ins => [
+    String(ins.severity || 'info').toUpperCase(),
+    String(ins.title).replace(/[^\x20-\x7E]/g, '').trim(), // non-ASCII strip
+    String(ins.message).replace(/[^\x20-\x7E]/g, '').trim(),
+    String(ins.recommendation).replace(/[^\x20-\x7E]/g, '').trim()
+  ]);
+
+  autoTable(doc, {
+    startY: y,
+    head: [['Severity', 'Issue', 'Message', 'Recommendation']],
+    body: insightRows,
+    margin: { left: margin, right: margin },
+    styles: { fontSize: 7.5, cellPadding: 1.5, overflow: 'linebreak' },
+    headStyles: { fillColor: c.accent, textColor: 255 },
+    alternateRowStyles: { fillColor: c.bg },
+    columnStyles: {
+      0: { cellWidth: 18 },   // Severity badge width
+      1: { cellWidth: 50 },   // Issue title
+      2: { cellWidth: 50 },   // Message
+      3: { cellWidth: 52 }    // Recommendation
+    },
+    tableLineColor: c.gray,
+    tableLineWidth: 0.2
+  });
+  y = doc.lastAutoTable.finalY + 8;
+}
+
+    // --- Modern Footer ---
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
-      doc.setFontSize(9);
-      doc.setTextColor(136, 136, 136); // #888888
-      const footerY = doc.internal.pageSize.height - 10; // ~287 mm safe margin
-      // Left: Foxit credit
-      doc.text('Generated by Uplytic — Powered by Foxit PDF SDK', margin, footerY, { align: 'left' });
-      // Right: page number
-      doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width - margin, footerY, { align: 'right' });
+      doc.setFontSize(8);
+      doc.setTextColor(...c.gray);
+      const footY = 297 - 8;
+      doc.text('Generated by Uplytic — Powered by Foxit PDF SDK', margin, footY, { align: 'left' });
+      doc.text(`Page ${String(i)} / ${String(pageCount)}`, 210 - margin, footY, { align: 'right' });
     }
 
-    // Save the PDF
-    doc.save(this.options.filename);
+    doc.save('Uplytic-API-Report.pdf');
   }
 }
 
