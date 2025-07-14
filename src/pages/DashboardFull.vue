@@ -454,6 +454,22 @@
       :stats="selectedApiStats.value"
       :cost="selectedApiStats.value && selectedApiStats.value.costImpact ? selectedApiStats.value.costImpact : {}"
     />
+      <!-- All APIs Map at Bottom -->
+      <div class="rounded-xl shadow-sm border overflow-hidden transition-colors duration-300 mb-8 w-full" :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'">
+        <div class="px-6 py-4 border-b transition-colors duration-300" :class="isDark ? 'bg-gradient-to-r from-gray-800 to-gray-700 border-gray-600' : 'bg-gradient-to-r from-gray-50 to-gray-100 border-gray-200'">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-xl font-semibold transition-colors duration-300" :class="isDark ? 'text-white' : 'text-gray-900'">
+                All API Locations
+              </h3>
+            </div>
+          </div>
+        </div>
+        <div class="mb-8">
+          <h3 class="text-xl font-bold mb-4 transition-colors duration-300" :class="isDark ? 'text-white' : 'text-gray-900'">Real-Time Outage Map</h3>
+          <OutageMap :apis="mapApisForOutageMap" :center="[20, 0]" :zoom="2" />
+        </div>
+      </div>
   </DashboardLayout>
   <AddApiModal
     v-if="showAddApiModal"
@@ -476,6 +492,9 @@
     :stats="selectedApiStats.value"
     :isDark="isDark"
   />
+
+  
+  
 </template>
 
 <script setup>
