@@ -41,7 +41,7 @@ A production-grade API monitoring solution built for the DevNetwork Hackathon 20
 - **Interactive Charts** - Latency trends and status distribution
 - **Historical Data** - Track performance over time
 - **Custom Dashboards** - Tailored views for different APIs
-- **Export Capabilities** - PDF reports with charts and insights
+- **Export Capabilities** - PDF reports with charts and insights (see below)
 - **Multiple Dashboard Views** - Full, Simple, and New dashboard layouts
 
 ### 🚨 Alert System
@@ -55,6 +55,19 @@ A production-grade API monitoring solution built for the DevNetwork Hackathon 20
 - **Public Dashboards** - Share API status via unique URLs
 - **Read-only Views** - Secure public access
 - **Branded Reports** - Professional appearance for stakeholders
+
+### 📝 PDF Export (Modern, Branded, Per-API)
+- **One-click PDF Export** for any API: Each API card has an Export PDF button
+- **Dynamic, Context-Aware**: Only the selected/clicked API's data is exported
+- **Modern, Production-Grade Design**: 
+  - Branded header with logo and product name
+  - Key metrics as colored cards
+  - Cost analysis with bar chart and financial breakdown
+  - Recent activity table (last 10 checks)
+  - AI insights with severity badges and recommendations
+  - Subtle, fixed footer with Foxit PDF SDK credit and page numbers
+- **Robust Error Handling**: All values are stringified for jsPDF compatibility
+- **Powered by jsPDF + jspdf-autotable** (no longer uses html2pdf.js)
 
 ## 🎨 **WOW Factor Features**
 
@@ -83,7 +96,7 @@ A production-grade API monitoring solution built for the DevNetwork Hackathon 20
 - **Backend**: Supabase (PostgreSQL, Auth, RLS, Edge Functions)
 - **Charts**: Chart.js + Vue-ChartJS + Custom 3D Canvas
 - **Maps**: Leaflet + Vue-Leaflet
-- **PDF Export**: html2pdf.js
+- **PDF Export**: jsPDF + jspdf-autotable (modern, branded, robust)
 - **AI Integration**: Google Gemini AI
 - **Markdown**: markdown-it + vue3-markdown-it
 - **Notifications**: Vue Toastification
@@ -130,6 +143,10 @@ npm run build
 # Deploy the dist folder to Netlify
 ```
 
+### 6. PDF Export Usage
+- On the dashboard, expand any API card and click the **Export PDF** button to generate a modern, branded PDF report for that API.
+- The PDF will include only the selected API's data, with all key metrics, cost analysis, recent activity, and AI insights.
+
 ## 📁 Project Structure
 
 ```
@@ -147,7 +164,7 @@ src/
 └── router/             # Vue router configuration
 ```
 
-## 🔧 Configuration
+## �� Configuration
 
 ### API Monitoring Settings
 - **Polling Interval**: 60 seconds (configurable in `pollingService.js`)
@@ -234,6 +251,8 @@ Customize alert rules in `utils/insightsEngine.js`.
 ```env
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+GEMINI_API_KEYS=your_gemini_api_keys
+GEMINI_API_URL=your_gemini_api_url
 ```
 
 ## 🗺️ Map Features
